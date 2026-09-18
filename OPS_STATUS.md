@@ -1,6 +1,6 @@
 # ACTA OPS STATUS
 
-_Last updated: 2026-09-18 (Claude, engineering pass — see PR #1 for detail)_
+_Last updated: 2026-09-18 12:20 UTC (Claude, morning-resume re-verification — see PR #1 for detail)_
 
 ## North Star
 Keep the trader at the desk. ACTA should quickly answer **WHAT / WHY / NEXT** while preserving user choice and source transparency.
@@ -20,9 +20,9 @@ Keep the trader at the desk. ACTA should quickly answer **WHAT / WHY / NEXT** wh
 - [x] Weekly trader + non-trader feedback loop established
 
 ## Active / Launch-Critical
-- [x] Confirm clean local build/run path — verified 2026-09-18 (Claude): `npm install`/`typecheck`/`build`/`dev` all clean, spot-checked routes 200 with clean console; see PR #1 comments.
-- [x] Confirm production build path — verified 2026-09-18 (Claude): `npm run build` produces `.vercel/output/` (Vercel preset), client + SSR functions built clean.
-- [ ] Verify shareable deployment — not started. This needs an Ops/Ryan decision (which host/project, `DATABASE_URL`/`VITE_AUTH_ENABLED` for that target) before Claude can execute it; see `ENGINEERING_AUDIT_001.md` §2 on the auth-flag default.
+- [x] Confirm clean local build/run path — verified 2026-09-18 (Claude), **re-confirmed on morning resume, 12:20 UTC**: `npm install`/`typecheck`/`build`/`dev` all clean, spot-checked routes 200 with clean console; see PR #1 comments.
+- [x] Confirm production build path — verified 2026-09-18 (Claude), **re-confirmed on morning resume, 12:20 UTC**: `npm run build` produces `.vercel/output/` (Vercel preset), client + SSR functions built clean.
+- [ ] Verify shareable deployment — **still the one open blocker on this list, unchanged since last report**: needs an Ops/Ryan decision (which host/project, `DATABASE_URL`/`VITE_AUTH_ENABLED` for that target) before Claude can execute it; see `ENGINEERING_AUDIT_001.md` §2 on the auth-flag default. Nothing Claude can do here without that input — flagging again since it's explicitly priority #3 on the resume list.
 - [x] Investigate inconsistent TradingView chart/open behavior — root-caused and fixed 2026-09-18 (Claude). The VIX book page used `CBOE:VIX` for its inline mini-chart (correct — matches CLAUDE.md's known-good list) but `TVC:VIX` for its "Open TradingView →" external link — `TVC:VIX` is exactly the symbol CLAUDE.md documents as broken, so that one link opened a dead/wrong chart while the inline chart worked. Fixed in `src/lib/markets.ts` to use `CBOE:VIX` in both places. Also hardened a dead fallback in `market-view.tsx` (`NASDAQ:NDX`, also a documented-broken symbol, unreachable today but a landmine for the next instrument added) to `NASDAQ:QQQ`. Checked every other TradingView symbol in the app (mini-chart map, external links, ticker tape) against CLAUDE.md's known-good list and each other — no other mismatches found. Not investigated: whether the futures continuous-contract links (`CME_MINI:NQ1!`/`CME_MINI:ES1!`) need a TradingView login to fully resolve — not documented as broken anywhere in this repo, so left as-is pending an actual report.
 - [x] Fix visible text clipping/alignment in white ticker/banner area — fixed 2026-09-18 (Claude), pushed in `48a17d8`: wrong widget theme + a `#ffffff` CSS token + a wrapper-height/CSS-height mismatch, all in `tape-strip.tsx`/`styles.css`. See PR #1 for details.
 
