@@ -53,6 +53,9 @@ No code changed for this item — discovery only, per Ops's instruction.
 - [ ] Personalization / multiple desks / Pro intelligence layer
 - [ ] Deeper Socials hub
 
+## Persistent Product Requirements
+- [ ] **User-selectable Light and Dark themes** (Ops, 2026-09-18): the iridescent brand treatment must work in both and must never replace the user's theme choice. **Correcting the record**: the current app (2.0) has no light theme today — checked directly (no `data-theme`/`prefers-color-scheme`/theme toggle/theme library anywhere in `src`, and `styles.css`'s `@theme` block defines exactly one, dark, palette). The V1 static prototype did have a light/dark toggle (see `PRODUCT.md`), but that's a different, unrelated codebase. Building a real light theme is feature work, not polish — a second color palette for every token plus a toggle and persistence — not something to fold into the brand-sheen fix. Logging it here as a standing requirement so it isn't lost; the `.foil` gradient chosen for the sheen is tuned against the current dark background and will need revisiting (contrast, not necessarily hue) once a light theme actually exists. Not starting this without an explicit go-ahead, since it's squarely outside "small tasteful polish."
+
 ## Product Principle
 ACTA should not become a content gatekeeper. It should help users reach, compare, and understand sources while making provenance visible.
 
