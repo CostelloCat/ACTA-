@@ -61,13 +61,12 @@
 .foil {
   background: linear-gradient(
     115deg,
-    #d8c39a 0%,
-    #f3ead2 16%,
-    #c9b8ea 34%,
-    #f0c2d8 52%,
-    #f3ead2 68%,
-    #a8dbe0 84%,
-    #d8c39a 100%
+    #c9b8ea 0%,
+    #f0c2d8 20%,
+    #f5d4b8 40%,
+    #bfe8c9 60%,
+    #a8dbe0 80%,
+    #c9b8ea 100%
   );
   background-size: 220% 220%;
   -webkit-background-clip: text;
