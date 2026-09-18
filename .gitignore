@@ -1,0 +1,16 @@
+node_modules
+dist
+.output
+.vinxi
+.vercel
+.wrangler
+.cache
+.grok
+artifacts
+attachments
+screenshots
+.project_id
+.env
+.env.local
+*.log
+.DS_Store
