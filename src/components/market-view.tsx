@@ -43,7 +43,7 @@ export function MarketView({ book }: { book: Book }) {
         <p className="text-muted text-[10px] tracking-[0.22em] uppercase">{book.hits}</p>
         <h1 className="mt-2 text-4xl">{book.title}</h1>
         <div className="mt-5">
-          <TvMini symbol={SYM[book.slug] ?? "NASDAQ:NDX"} />
+          <TvMini symbol={SYM[book.slug] ?? "NASDAQ:QQQ"} />
         </div>
         <p className="text-fg mt-4 max-w-2xl text-sm leading-relaxed">{book.bias}</p>
         <LevelKeys slug={book.slug} labels={book.levels} />

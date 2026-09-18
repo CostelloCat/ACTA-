@@ -57,7 +57,7 @@ export const BOOKS = {
   vix: {
     slug: "vix",
     title: "VIX",
-    tv: "https://www.tradingview.com/chart/?symbol=TVC%3AVIX",
+    tv: "https://www.tradingview.com/chart/?symbol=CBOE%3AVIX",
     hits: "Vol · ES puts",
     bias: "Event vol. FOMC morning bid, crush into the presser if the statement is as-expected.",
     levels: ["Spot 15 / 20 / 25", "Term structure"],
