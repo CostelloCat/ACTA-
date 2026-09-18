@@ -27,8 +27,8 @@ export function TapeStrip() {
         { proName: "FX_IDC:USDX", title: "DXY" },
       ],
       showSymbolLogo: true,
-      colorTheme: "light",
-      isTransparent: false,
+      colorTheme: "dark",
+      isTransparent: true,
       displayMode: "compact",
       locale: "en",
     });
@@ -38,8 +38,8 @@ export function TapeStrip() {
 
   return (
     <div className="px-3 sm:px-4">
-      <div className="bg-tape mx-auto h-[46px] max-w-6xl overflow-hidden rounded-full">
-        <div ref={ref} className="tape-host h-[46px] w-full" />
+      <div className="bg-tape mx-auto h-[72px] max-w-6xl overflow-hidden rounded-full">
+        <div ref={ref} className="tape-host h-[72px] w-full" />
       </div>
     </div>
   );
