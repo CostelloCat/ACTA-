@@ -1,6 +1,6 @@
 # ACTA OPS STATUS
 
-_Last updated: 2026-09-19 (Claude, calendar impact-view proposal delivered — see PR #1 for detail)_
+_Last updated: 2026-09-19 (Claude, calendar impact-view proposal delivered; logged Ops's Global News visual-reference note and company-posture directive — see PR #1 for detail)_
 
 ## North Star
 Keep the trader at the desk. ACTA should quickly answer **WHAT / WHY / NEXT** while preserving user choice and source transparency.
@@ -49,7 +49,7 @@ Keep the trader at the desk. ACTA should quickly answer **WHAT / WHY / NEXT** wh
 No code changed for this item — discovery only, per Ops's instruction.
 
 ## Later / V2
-- [ ] Global News redesign
+- [ ] Global News redesign — **2026-09-19 note (Ops relay)**: founder supplied a second visual reference (branching/converging data-flow on a dark field), explicitly logged as **future inspiration, not a current build instruction**. Possible fit if ever built: a news event/source as the center node, branches to affected markets/sectors/instruments/regions, provenance always visible, and a clear visual distinction between direct factual linkage vs. an inferred/AI-generated relationship — in service of ACTA's "Against the Current" principle (surfacing source diversity/cross-border perspective rather than hiding it behind one feed), never decorative. Same design family as the Flow-map/Influence-Map item below; should be designed together with it, not separately. Not scoped or started.
 - [ ] "Go Against the Current" discovery mode for international/non-mainstream/non-US perspectives
 - [ ] Broader media/source choice while preserving source identity and live-status honesty
 - [ ] Personalization / multiple desks / Pro intelligence layer
@@ -67,6 +67,8 @@ No code changed for this item — discovery only, per Ops's instruction.
 
 ## Product Principle
 ACTA should not become a content gatekeeper. It should help users reach, compare, and understand sources while making provenance visible.
+
+**Company posture (Ops, 2026-09-19)**: ACTA is an LLC-backed business — develop with company-grade discipline: clean ownership, auditable source-of-truth, low recurring cost, production safety, traceable AI output, and features that materially strengthen trader utility or defensibility. This governs every item on this page, not just new ones.
 
 ## Owner Map
 - Ryan: vision, style, utility, weekly human feedback
