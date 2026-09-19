@@ -1,6 +1,6 @@
 # ACTA OPS STATUS
 
-_Last updated: 2026-09-18 12:20 UTC (Claude, morning-resume re-verification — see PR #1 for detail)_
+_Last updated: 2026-09-19 (Claude, calendar impact-view proposal delivered — see PR #1 for detail)_
 
 ## North Star
 Keep the trader at the desk. ACTA should quickly answer **WHAT / WHY / NEXT** while preserving user choice and source transparency.
@@ -54,7 +54,7 @@ No code changed for this item — discovery only, per Ops's instruction.
 - [ ] Broader media/source choice while preserving source identity and live-status honesty
 - [ ] Personalization / multiple desks / Pro intelligence layer
 - [ ] Deeper Socials hub
-- [ ] Flow-map / network-flow visualization (colored lines converging/diverging between nodes, per founder's visual reference, 2026-09-18) — backlog candidate for a future **Influence Map / relationship view**, only where it materially helps traders see connections between instruments, catalysts, sources, or market effects. Not scoped or started. Note: `ENGINEERING_AUDIT_001.md` §E already proposes an `instrument_influence` data model (seeded from `markets.ts`'s existing bias/note text) for the personalization/ranking engine — if this visualization ever gets built, that's almost certainly the data it should render, so the two should be designed together rather than as separate efforts.
+- [ ] Flow-map / network-flow visualization (colored lines converging/diverging between nodes, per founder's visual reference, 2026-09-18) — backlog candidate for a future **Influence Map / relationship view**, only where it materially helps traders see connections between instruments, catalysts, sources, or market effects. Note: `ENGINEERING_AUDIT_001.md` §E already proposes an `instrument_influence` data model (seeded from `markets.ts`'s existing bias/note text) for the personalization/ranking engine — if this visualization ever gets built, that's almost certainly the data it should render, so the two should be designed together rather than as separate efforts. **Update 2026-09-19**: founder asked specifically to evolve the Trading Calendar into an immersive event → catalyst → instrument impact view. Delivered a 5-point scoping proposal per explicit instruction (proposal first, no build) — see `CALENDAR_IMPACT_VIEW_PROPOSAL.md` and PR #1 comment. Recommends a small isolated prototype (a `CalEvent.instruments[]` field + one new component inside the existing `DateSheet`, no new deps/schema) now, with the full animated flow-diagram and the DB-backed `instrument_influence` graph held as follow-ups after Phase 1 of the engineering audit. **Awaiting sign-off before any code changes.**
 
 ## Weekly Feedback Log
 - **2026-09-18, Ryan, live-trading test of the preview deployment**:
