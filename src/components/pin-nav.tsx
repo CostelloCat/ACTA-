@@ -5,10 +5,9 @@ import { cn } from "@/lib/utils";
 
 const CORE = [
   { to: "/", label: "Desk" },
-  { to: "/news", label: "Global News" },
-  { to: "/calendar", label: "Trading Calendar" },
-  { to: "/socials", label: "Socials" },
-  { to: "/crypto", label: "Crypto" },
+  { to: "/calendar", label: "Calendar" },
+  { to: "/news", label: "News" },
+  { to: "/socials", label: "Crowd" },
   { to: "/search", label: "Search" },
 ] as const;
 
@@ -34,12 +33,15 @@ export function PinNav() {
   }
 
   return (
-    <nav className="mt-2 flex gap-1 overflow-x-auto pb-2">
-      {CORE.map((item) => (
-        <Link key={item.to} to={item.to} className={cn("pill", pathname === item.to && "pill-on")}>
-          {item.label}
-        </Link>
-      ))}
+    <nav className="mt-2 flex items-center gap-1 overflow-x-auto pb-2" aria-label="Primary navigation">
+      <div className="flex shrink-0 gap-1 border-r border-line pr-2">
+        {CORE.map((item) => (
+          <Link key={item.to} to={item.to} className={cn("pill", pathname === item.to && "pill-on")}>
+            {item.label}
+          </Link>
+        ))}
+      </div>
+      <span className="text-muted ml-1 hidden text-[9px] tracking-[0.18em] uppercase sm:inline">Markets</span>
       {pins.map((slug) => {
         const pin = pinBySlug(slug);
         if (!pin) return null;
@@ -51,10 +53,11 @@ export function PinNav() {
       })}
       <div className="relative">
         <button type="button" className="pill pill-solid" onClick={() => setOpen((v) => !v)}>
-          + Add
+          Markets +
         </button>
         {open ? (
           <div className="bg-surface border-line absolute top-full right-0 z-30 mt-1 max-h-72 min-w-44 overflow-y-auto rounded-xl border p-1">
+            <p className="text-muted px-3 pb-1 pt-2 text-[9px] tracking-[0.18em] uppercase">Pin to your tape</p>
             {PIN_CATALOG.map((p) => {
               const on = pins.includes(p.slug);
               return (
@@ -65,7 +68,7 @@ export function PinNav() {
                   className="hover:bg-raised flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm"
                 >
                   <span>{p.label}</span>
-                  <span className="text-muted text-[11px]">{on ? "pinned" : "add"}</span>
+                  <span className="text-muted text-[11px]">{on ? "remove" : "pin"}</span>
                 </button>
               );
             })}

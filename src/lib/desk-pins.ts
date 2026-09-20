@@ -19,7 +19,8 @@ export const PIN_CATALOG: Pin[] = [
   { slug: "mag7", label: "Mag 7", to: "/mag7" },
 ];
 
-export const DEFAULT_PINS = ["nq", "spx", "gold", "silver", "oil", "vix", "btc", "eth", "sol"];
+// Keep the persistent rail useful at a glance. The full catalog remains one click away.
+export const DEFAULT_PINS = ["nq", "spx", "gold", "btc"];
 
 const KEY = "acta-desk-pins";
 

@@ -3,14 +3,8 @@ import { useMemo, useState } from "react";
 import { AskTape } from "@/components/ask-tape";
 import { Shell } from "@/components/shell";
 import {
-  KIND_LABEL,
-  eventsOn,
-  monthGrid,
-  nextEvent,
-  shiftMonth,
-  upcomingFrom,
-  type CalEvent,
-  type CalKind,
+  EVENTS, KIND_LABEL, eventsOn, monthGrid, shiftMonth, upcomingFrom,
+  type CalEvent, type CalKind,
 } from "@/lib/calendar";
 import { cn } from "@/lib/utils";
 
@@ -22,21 +16,8 @@ const KIND_CLASS: Record<CalKind, string> = {
   oil: "bg-oil/20 text-oil",
   mag7: "bg-mag7/20 text-mag7",
 };
-
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const ASSETS = ["All", "NQ", "ES", "AAPL", "NVDA", "GOLD", "CL", "BTC"] as const;
 
 function isoToday() {
   const n = new Date();
@@ -46,246 +27,125 @@ function isoToday() {
 function CalendarPage() {
   const now = new Date();
   const today = isoToday();
+  const firstUpcoming = upcomingFrom(today, 1)[0] ?? EVENTS[0];
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
-  const [sel, setSel] = useState(today);
-  const [sheet, setSheet] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<CalEvent>(firstUpcoming);
+  const [asset, setAsset] = useState<(typeof ASSETS)[number]>("All");
   const cells = useMemo(() => monthGrid(year, month), [year, month]);
-  const selected = eventsOn(sel);
-  const table = upcomingFrom(today, 10);
-  const upcoming = nextEvent();
+  const agenda = useMemo(() => upcomingFrom(today, 14).filter((event) => asset === "All" || event.hits.includes(asset)), [asset, today]);
 
-  function jumpIso(iso: string, open = true) {
-    setSel(iso);
-    const [y, m] = iso.split("-").map(Number);
-    if (y && m) {
-      setYear(y);
-      setMonth(m - 1);
-    }
-    if (open) setSheet(true);
+  function moveMonth(delta: number) {
+    const next = shiftMonth(year, month, delta);
+    setYear(next.year);
+    setMonth(next.month);
   }
 
-  const grokChips = selected.length
-    ? selected.map((e) => ({
-        label: `Grok · ${e.short}`,
-        prompt: `${e.title} on ${e.date}${e.time ? ` ${e.time} ET` : ""}. Hits ${e.hits}. What does this print historically do to those markets in the first 15 minutes and through the session? Typical fakeout vs follow-through.`,
-      }))
-    : [
-        {
-          label: "Grok · next print",
-          prompt: upcoming
-            ? `${upcoming.title} is next. Hits ${upcoming.hits}. Historical reaction for MNQ, ES, gold.`
-            : "Walk the next week of the calendar for MNQ, ES, gold.",
-        },
-      ];
+  function selectEvent(event: CalEvent) {
+    setSelectedEvent(event);
+    const [y, m] = event.date.split("-").map(Number);
+    setYear(y);
+    setMonth(m - 1);
+  }
 
   return (
     <Shell>
-      <div className="relative -mx-3 -mt-6 min-h-[88vh] sm:-mx-5">
-        <img
-          src="/hero/mesh.jpg"
-          alt=""
-          className="mesh-drift pointer-events-none absolute inset-0 h-full w-full object-cover opacity-55"
-        />
-        <div className="pointer-events-none absolute inset-0 bg-bg/40" />
-        <div className="relative mx-auto max-w-5xl px-3 py-6 sm:px-5">
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <div className="bg-surface border-line flex min-h-11 items-center rounded-full border pr-3">
-            <button
-              type="button"
-              className="grid size-11 place-items-center text-sm"
-              aria-label="Previous month"
-              onClick={() => {
-                const n = shiftMonth(year, month, -1);
-                setYear(n.year);
-                setMonth(n.month);
-              }}
-            >
-              ←
-            </button>
-            <select
-              className="min-h-11 appearance-none bg-transparent px-1 text-sm outline-none"
-              value={month}
-              onChange={(e) => setMonth(Number(e.target.value))}
-              aria-label="Month"
-            >
-              {MONTHS.map((name, i) => (
-                <option key={name} value={i}>
-                  {name}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              className="grid size-11 place-items-center text-sm"
-              aria-label="Next month"
-              onClick={() => {
-                const n = shiftMonth(year, month, 1);
-                setYear(n.year);
-                setMonth(n.month);
-              }}
-            >
-              →
-            </button>
+      <main className="mx-auto max-w-6xl">
+        <header className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-5">
+          <div>
+            <p className="text-gold text-[10px] tracking-[0.2em] uppercase">Catalyst desk</p>
+            <h1 className="mt-1 text-3xl sm:text-4xl">Know what can move your trade.</h1>
           </div>
-          <select
-            className="bg-surface border-line cal-select min-h-11 rounded-full border pl-3 text-sm"
-            value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
-            aria-label="Year"
-          >
-            {[2026, 2027].map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
+          <div className="flex max-w-full gap-1 overflow-x-auto pb-1" aria-label="Filter events by instrument">
+            {ASSETS.map((item) => (
+              <button key={item} type="button" className={cn("pill", asset === item && "pill-on")} onClick={() => setAsset(item)}>{item}</button>
             ))}
-          </select>
-          <input
-            type="date"
-            value={sel}
-            onChange={(e) => e.target.value && jumpIso(e.target.value)}
-            className="bg-surface border-line min-h-11 rounded-full border px-3 text-sm"
-            aria-label="Jump to date"
-          />
-          <button type="button" className="pill pill-solid" onClick={() => jumpIso(today)}>
-            Today
-          </button>
-        </div>
+          </div>
+        </header>
 
-        <div className="border-line overflow-hidden rounded-2xl border bg-black/25 backdrop-blur-[2px]">
-          <div className="text-muted grid grid-cols-7 border-b border-line text-center text-[11px] tracking-widest uppercase">
-            {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-              <div key={`${d}${i}`} className="py-2">
-                {d}
-              </div>
-            ))}
+        <section className="mt-5 grid gap-4 lg:grid-cols-[1.25fr_.75fr]">
+          <div className="overflow-hidden rounded-2xl border border-line bg-black/30">
+            <div className="flex items-center justify-between border-b border-line px-3 py-2.5">
+              <button type="button" className="pill" onClick={() => moveMonth(-1)} aria-label="Previous month">←</button>
+              <p className="text-sm font-medium">{MONTHS[month]} {year}</p>
+              <button type="button" className="pill" onClick={() => moveMonth(1)} aria-label="Next month">→</button>
+            </div>
+            <div className="text-muted grid grid-cols-7 border-b border-line text-center text-[10px] tracking-widest uppercase">
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => <div key={day} className="py-2">{day}</div>)}
+            </div>
+            <div className="grid grid-cols-7">
+              {cells.map((cell, index) => {
+                const dayEvents = cell.iso ? eventsOn(cell.iso).filter((event) => asset === "All" || event.hits.includes(asset)) : [];
+                const selected = dayEvents.some((event) => event === selectedEvent);
+                return (
+                  <div key={`${cell.iso}-${index}`} className={cn("min-h-20 border-b border-r border-white/10 p-1.5 sm:min-h-24 sm:p-2", !cell.day && "bg-black/20", selected && "bg-white/[0.05]")}>
+                    {cell.day ? <span className={cn("text-muted text-xs", cell.iso === today && "text-gold")}>{cell.day}</span> : null}
+                    <div className="mt-1 space-y-1">
+                      {dayEvents.slice(0, 2).map((event) => (
+                        <button key={`${event.date}-${event.title}`} type="button" onClick={() => selectEvent(event)} className={cn("block w-full truncate rounded-md px-1.5 py-1 text-left text-[10px] leading-tight", KIND_CLASS[event.kind], event === selectedEvent && "ring-1 ring-current")}>
+                          {event.time ? `${event.time} ` : ""}{event.short}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          <div className="grid grid-cols-7">
-            {cells.map((c, i) => {
-              const ev = c.iso ? eventsOn(c.iso) : [];
-              const on = c.iso === sel;
-              const isToday = c.iso === today;
-              return (
-                <button
-                  key={i}
-                  type="button"
-                  disabled={!c.day}
-                  onClick={() => c.iso && jumpIso(c.iso)}
-                  className={cn(
-                    "border-white/10 min-h-24 border-r border-b p-2 text-left align-top sm:min-h-28",
-                    on && "bg-black/45",
-                    !c.day && "bg-black/20",
-                  )}
-                >
-                  {c.day ? (
-                    <>
-                      <span className={cn("text-fg text-sm", isToday && "text-gold")}>{c.day}</span>
-                      <div className="mt-1 flex flex-col gap-1">
-                        {ev.map((e) => (
-                          <span
-                            key={e.short + e.title}
-                            className={cn(
-                              "truncate rounded-full px-1.5 py-0.5 text-[10px] leading-tight",
-                              KIND_CLASS[e.kind],
-                            )}
-                          >
-                            {e.short}
-                          </span>
-                        ))}
-                      </div>
-                    </>
-                  ) : null}
+
+          <aside className="rounded-2xl border border-line bg-surface/90 p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-3">
+              <p className={cn("rounded-full px-2 py-1 text-[10px] tracking-[0.16em] uppercase", KIND_CLASS[selectedEvent.kind])}>{KIND_LABEL[selectedEvent.kind]}</p>
+              <p className="text-muted text-xs tabular-nums">{formatWhen(selectedEvent.date, selectedEvent.time)}</p>
+            </div>
+            <h2 className="mt-4 text-2xl">{selectedEvent.title}</h2>
+            <p className="text-muted mt-2 text-xs tracking-[0.14em] uppercase">Direct exposure · {selectedEvent.hits}</p>
+            <div className="mt-5 border-l-2 border-gold/60 pl-4">
+              <p className="text-muted text-[10px] tracking-[0.18em] uppercase">Why it matters</p>
+              <p className="mt-2 text-sm leading-relaxed">{selectedEvent.context}</p>
+            </div>
+            <div className="mt-5 border-l-2 border-line pl-4">
+              <p className="text-muted text-[10px] tracking-[0.18em] uppercase">Typical tape</p>
+              <p className="text-muted mt-2 text-sm leading-relaxed">{selectedEvent.history}</p>
+            </div>
+            <div className="mt-5">
+              <AskTape chips={[{ label: `Ask · ${selectedEvent.short}`, prompt: `${selectedEvent.title} on ${selectedEvent.date}${selectedEvent.time ? ` at ${selectedEvent.time} ET` : ""}. Hits ${selectedEvent.hits}. Give me the long case, short case, invalidation, and the first 15-minute reaction to watch.` }]} />
+            </div>
+          </aside>
+        </section>
+
+        <section className="mt-6">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div><p className="text-muted text-[10px] tracking-[0.2em] uppercase">Forward tape</p><h2 className="mt-1 text-xl">Next catalysts{asset !== "All" ? ` for ${asset}` : ""}</h2></div>
+            <div className="text-muted hidden flex-wrap gap-3 text-[10px] uppercase sm:flex">
+              {(Object.keys(KIND_LABEL) as CalKind[]).map((kind) => <span key={kind}>{KIND_LABEL[kind]}</span>)}
+            </div>
+          </div>
+          {agenda.length ? (
+            <div className="grid gap-2 md:grid-cols-2">
+              {agenda.slice(0, 8).map((event) => (
+                <button key={`${event.date}-${event.title}`} type="button" onClick={() => selectEvent(event)} className={cn("group grid grid-cols-[88px_1fr_auto] items-center gap-3 rounded-xl border border-line bg-black/25 p-3 text-left transition-colors hover:bg-raised", event === selectedEvent && "border-gold/50 bg-raised")}>
+                  <span className="text-muted text-xs tabular-nums">{formatCompact(event.date, event.time)}</span>
+                  <span className="min-w-0"><strong className="block truncate text-sm font-medium">{event.title}</strong><small className="text-muted mt-1 block truncate text-[10px] tracking-wide uppercase">{event.hits}</small></span>
+                  <span className="text-muted transition-transform group-hover:translate-x-0.5">→</span>
                 </button>
-              );
-            })}
-          </div>
-        </div>
-        <div className="text-muted mt-3 flex flex-wrap gap-4 text-[11px] tracking-wide uppercase">
-          {(Object.keys(KIND_LABEL) as CalKind[]).map((k) => (
-            <span key={k} className="flex items-center gap-1.5">
-              <i className={cn("size-2 rounded-full", KIND_CLASS[k].split(" ")[0])} />
-              {KIND_LABEL[k]}
-            </span>
-          ))}
-        </div>
-
-        {sheet ? <DateSheet iso={sel} events={selected} onClose={() => setSheet(false)} /> : null}
-
-        <div className="mt-6">
-          <AskTape chips={grokChips} />
-        </div>
-
-        <div className="bg-black/40 border-line mt-6 overflow-x-auto rounded-2xl border backdrop-blur-[2px]">
-          <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="text-muted text-[11px] tracking-widest uppercase">
-              <tr className="border-line border-b">
-                <th className="px-4 py-3 font-medium">When</th>
-                <th className="px-4 py-3 font-medium">Event</th>
-                <th className="px-4 py-3 font-medium">Hits</th>
-                <th className="px-4 py-3 font-medium">What it does</th>
-              </tr>
-            </thead>
-            <tbody>
-              {table.map((e) => (
-                <tr key={e.title} className="border-line border-b last:border-0">
-                  <td className="text-muted px-4 py-3 whitespace-nowrap">{formatWhen(e.date, e.time)}</td>
-                  <td className="px-4 py-3">{e.title}</td>
-                  <td className="text-muted px-4 py-3 whitespace-nowrap">{e.hits}</td>
-                  <td className="text-muted px-4 py-3">{e.history}</td>
-                </tr>
               ))}
-            </tbody>
-          </table>
-        </div>
-        </div>
-      </div>
+            </div>
+          ) : <p className="text-muted rounded-xl border border-line p-5 text-sm">No scheduled catalyst currently hits {asset} in this window.</p>}
+        </section>
+      </main>
     </Shell>
   );
 }
 
-function DateSheet({ iso, events, onClose }: { iso: string; events: CalEvent[]; onClose: () => void }) {
-  const day = new Date(`${iso}T12:00:00`).toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-  return (
-    <div className="fixed inset-0 z-40 grid place-items-end sm:place-items-center" onClick={onClose}>
-      <button type="button" className="absolute inset-0 bg-black/60" aria-label="Close" />
-      <div
-        className="bg-surface border-line relative z-10 max-h-[80dvh] w-full max-w-lg overflow-y-auto rounded-t-2xl border p-5 sm:rounded-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <p className="text-muted text-[10px] tracking-[0.22em] uppercase">Print window</p>
-        <h2 className="mt-1 text-2xl">{day}</h2>
-        {events.length ? (
-          <ul className="mt-5 space-y-5">
-            {events.map((e) => (
-              <li key={e.title} className="border-line border-b pb-5 last:border-0 last:pb-0">
-                <p className={cn("text-[10px] tracking-[0.18em] uppercase", "text-gold")}>
-                  {KIND_LABEL[e.kind]}
-                  {e.time ? ` · ${e.time} ET` : ""}
-                </p>
-                <p className="mt-1 text-lg">{e.title}</p>
-                <p className="text-muted mt-1 text-xs tracking-wide uppercase">{e.hits}</p>
-                <p className="mt-3 text-sm leading-relaxed">{e.context}</p>
-                <p className="text-muted mt-2 text-sm leading-relaxed">{e.history}</p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-muted mt-4 text-sm">Quiet day. No scheduled print on this desk.</p>
-        )}
-        <button type="button" className="pill pill-solid mt-6" onClick={onClose}>
-          Close
-        </button>
-      </div>
-    </div>
-  );
+function formatWhen(iso: string, time?: string) {
+  const date = new Date(`${iso}T12:00:00`);
+  const label = date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+  return time ? `${label} · ${time} ET` : label;
 }
 
-function formatWhen(iso: string, time?: string) {
-  const d = new Date(`${iso}T12:00:00`);
-  const day = d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
-  return time ? `${day} · ${time}` : day;
+function formatCompact(iso: string, time?: string) {
+  const date = new Date(`${iso}T12:00:00`);
+  const label = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return time ? `${label} · ${time}` : label;
 }
