@@ -63,7 +63,7 @@ Built per Ops's "build an ACTA Relationship Engine preview" directive, as a smal
 - **What this does *not* attempt yet** (explicitly out of scope for "smallest viable version," flagging so nothing here is mistaken for further along than it is):
   - **Live embeddable creator/news stream area** — needs real legal/licensing and embedding work per source; not started.
   - **Real "surfaces only when something materially changes" alerts** — needs actual live data deltas to key off; today's panel content is static sample data, so there's nothing genuine to alert on yet.
-  - **A dedicated countdown-to-next-event block** — not duplicated here on purpose: the existing `NextPrint` bar in `Shell` (visible at the top of every page, including `/lab` already) already does this live, so Watch Mode doesn't need its own copy.
+  - **A dedicated countdown-to-next-event block** — not duplicated here on purpose: at the time this was written, the global `NextPrint` bar in `Shell` (visible at the top of every page, including `/lab`) already did this live, so Watch Mode didn't need its own copy. **Correction, 2026-09-20:** Ryan's own `36a9ac5` commit ("Unify Calendar and Global News around catalyst rail") removed `<NextPrint />` from `Shell` globally in favor of the new `catalyst-rail.tsx` on `/calendar` and `/news`. No functional gap results for `/lab`: Watch Mode's own "Next 3 Prints" block (added in the next update below) already renders a genuine live countdown independent of `Shell`, so this line is now historical context, not a current dependency.
   - Genuine second-monitor typography/contrast testing on a real external display — only checked in a standard browser viewport so far.
 - Re-verified: `npm run typecheck` and `npm run build` both clean; screenshotted Explore mode (unchanged), Watch Mode's first frame, an auto-advanced frame after one 9s tick, and the paused/"Resume" state in a headless browser.
 
@@ -71,7 +71,7 @@ Built per Ops's "build an ACTA Relationship Engine preview" directive, as a smal
 
 **What's real:**
 - **"Next 3 prints"** — genuinely live, pulled straight from `calendar.ts`'s `upcomingFrom()` (the same data `NextPrint` and the calendar page already use), tagged `LIVE DATA` inline on the page, not just in the footer.
-- **Persistent market state** — already present and live: the `FuturesBar`/`TapeStrip`/`NextPrint` bars in `Shell` sit above `/lab` on every load. Watch Mode doesn't duplicate these; it inherits them, same as every other page.
+- **Persistent market state** — already present and live: the `FuturesBar`/`TapeStrip` bars in `Shell` sit above `/lab` on every load. Watch Mode doesn't duplicate these; it inherits them, same as every other page. (**Correction, 2026-09-20:** `NextPrint` itself was removed from `Shell` by Ryan's `36a9ac5` commit — see note above. `/lab`'s own "Next 3 Prints" block below covers the countdown independently, so nothing here was left uncovered.)
 - **Compact relationship view with hover/click depth** — the existing diagram, already de-emphasized-by-default with detail on hover/click (from the prior refinement pass).
 
 **What's mocked, and now labeled in-context (not just in the footer)**:
