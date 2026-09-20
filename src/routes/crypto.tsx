@@ -34,7 +34,7 @@ function Crypto() {
               Last 7 days on the coin wire. Refreshes every minute. No fake live TV.
             </p>
           </div>
-          <AskTape chips={[{ label: "Grok · crypto", prompt: "BTC ETH SOL tape today vs NQ and DXY. Short." }]} />
+          <AskTape chips={[{ label: "Astra · crypto", prompt: "BTC ETH SOL tape today vs NQ and DXY. Short." }]} />
         </div>
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <TvMini symbol="BITSTAMP:BTCUSD" />

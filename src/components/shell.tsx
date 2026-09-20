@@ -12,12 +12,16 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[48%] opacity-35">
         <div className="floor h-full w-full" />
       </div>
-      <header className="relative z-10 px-3 pt-2 sm:px-4">
-        <div className="flex items-center gap-3">
-          <Mast />
-          <SearchBar />
+      <header className="relative z-10 px-3 pt-4 sm:px-4 sm:pt-5">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex justify-center">
+            <Mast />
+          </div>
+          <div className="mx-auto mt-3 max-w-xl">
+            <SearchBar />
+          </div>
+          <PinNav />
         </div>
-        <PinNav />
       </header>
       <TapeStrip />
       <FuturesBar />

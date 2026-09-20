@@ -32,7 +32,7 @@ function Desk() {
 
   return (
     <Shell>
-      <main className="mx-auto max-w-6xl">
+      <main className="mx-auto max-w-7xl pt-5 sm:pt-8">
         <SessionGlobe />
 
         <section className="mt-6 grid gap-4 lg:grid-cols-[1.35fr_.65fr]">

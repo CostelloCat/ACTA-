@@ -6,11 +6,11 @@ type Chip = { label: string; prompt: string };
 
 const DEFAULT: Chip[] = [
   {
-    label: "Grok · walk this month",
+    label: "Astra · walk this month",
     prompt: "Walk this month for MNQ, ES, gold. What matters, what to ignore.",
   },
   {
-    label: "Grok · today's FOMC",
+    label: "Astra · today's FOMC",
     prompt:
       "Today is 16 Sep 2026. FOMC + dots + retail sales. How do I trade MNQ into 14:00 and the presser.",
   },
@@ -45,6 +45,7 @@ export function AskTape({ chips = DEFAULT, id }: { chips?: Chip[]; id?: string }
       </div>
       {open ? (
         <div className="bg-surface border-line rounded-2xl border p-4">
+          <p className="text-muted mb-3 text-[9px] tracking-[0.18em] uppercase">Astra · ACTA assistant · current engine Grok</p>
           <form
             className="flex flex-col gap-2 sm:flex-row"
             onSubmit={(e) => {

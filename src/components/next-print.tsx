@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { eventStamp, nextEvent, remainingParts } from "@/lib/calendar";
 
@@ -38,9 +39,9 @@ export function NextPrint() {
         >
           Share
         </button>
-        <a href="#tape" className="pill">
-          Grok
-        </a>
+        <Link to="/search" search={{ q: `${next.title} ${next.hits}` }} className="pill">
+          Astra
+        </Link>
       </div>
     </div>
   );

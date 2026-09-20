@@ -33,7 +33,7 @@ export function PinNav() {
   }
 
   return (
-    <nav className="mt-2 flex items-center gap-1 overflow-x-auto pb-2" aria-label="Primary navigation">
+    <nav className="mt-3 flex w-full items-center gap-1 overflow-x-auto pb-2 md:justify-center" aria-label="Primary navigation">
       <div className="flex shrink-0 gap-1 border-r border-line pr-2">
         {CORE.map((item) => (
           <Link key={item.to} to={item.to} className={cn("pill", pathname === item.to && "pill-on")}>

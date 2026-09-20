@@ -24,7 +24,7 @@ export function SessionGlobe() {
 
   return (
     <section className="relative overflow-hidden rounded-2xl border border-line bg-surface">
-      <div className="relative h-[430px] w-full overflow-hidden sm:h-[500px]">
+      <div className="relative h-[500px] w-full overflow-hidden sm:h-[620px]">
         <img
           src="/hero/orbit.jpg"
           alt=""
@@ -32,7 +32,7 @@ export function SessionGlobe() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-bg/15 via-transparent to-bg/45" />
         <div className="via-bg/75 absolute inset-x-0 top-[28%] h-36 bg-gradient-to-b from-transparent to-transparent" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center pb-32 text-center sm:pb-28">
+        <div className="absolute inset-0 flex flex-col items-center justify-center pb-36 text-center sm:pb-32">
           <p className="text-gold text-[10px] tracking-[0.85em] uppercase">
             {st.live ? "Live session" : "Between sessions"}
           </p>

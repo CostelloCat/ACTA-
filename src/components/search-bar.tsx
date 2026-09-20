@@ -17,8 +17,9 @@ export function SearchBar() {
       <input
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="Desks, prints, Grok…"
-        className="text-fg min-h-8 min-w-0 flex-1 bg-transparent px-2 text-sm outline-none placeholder:text-muted"
+        placeholder="Search ACTA or ask Astra…"
+        aria-label="Search ACTA"
+        className="border-line bg-surface/60 text-fg min-h-9 min-w-0 flex-1 rounded-full border px-4 text-center text-sm outline-none placeholder:text-muted"
       />
       <button type="submit" className="pill pill-solid">
         Go

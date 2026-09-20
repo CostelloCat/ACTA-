@@ -93,7 +93,7 @@ function SearchPage() {
         </form>
         <div className="mt-3 flex flex-wrap gap-1.5">
           <button type="button" className="pill" onClick={() => void ask()} disabled={busy}>
-            {busy ? "Grok…" : "Ask Grok"}
+            {busy ? "Astra…" : "Ask Astra"}
           </button>
           <a
             className="pill"
@@ -104,7 +104,12 @@ function SearchPage() {
             YouTube
           </a>
         </div>
-        {grok ? <p className="text-muted mt-4 text-sm leading-relaxed whitespace-pre-wrap">{grok}</p> : null}
+        {grok ? (
+          <div className="border-line mt-4 rounded-2xl border bg-black/20 p-4">
+            <p className="text-muted text-[9px] tracking-[0.18em] uppercase">Astra · ACTA assistant · current engine Grok</p>
+            <p className="text-muted mt-2 text-sm leading-relaxed whitespace-pre-wrap">{grok}</p>
+          </div>
+        ) : null}
         {q.trim().length >= 2 ? <BookNews query={q.trim()} /> : null}
         <ul className="mt-6 divide-y divide-line">
           {hits.map((h) => (
@@ -132,7 +137,7 @@ function SearchPage() {
                       );
                     }}
                   >
-                    Grok
+                    Astra
                   </button>
                 ) : null}
               </div>
