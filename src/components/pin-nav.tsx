@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 
 const CORE = [
   { to: "/", label: "Desk" },
+  { to: "/watch", label: "Watch" },
   { to: "/calendar", label: "Calendar" },
   { to: "/news", label: "News" },
   { to: "/socials", label: "Crowd" },

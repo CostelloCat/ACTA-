@@ -32,6 +32,7 @@ import { Route as SpxRouteImport } from './routes/spx'
 import { Route as TruthRouteImport } from './routes/truth'
 import { Route as UpdatesRouteImport } from './routes/updates'
 import { Route as VixRouteImport } from './routes/vix'
+import { Route as WatchRouteImport } from './routes/watch'
 import { Route as XlmRouteImport } from './routes/xlm'
 import { Route as XrpRouteImport } from './routes/xrp'
 
@@ -150,6 +151,11 @@ const VixRoute = VixRouteImport.update({
   path: '/vix',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WatchRoute = WatchRouteImport.update({
+  id: '/watch',
+  path: '/watch',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const XlmRoute = XlmRouteImport.update({
   id: '/xlm',
   path: '/xlm',
@@ -185,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/truth': typeof TruthRoute
   '/updates': typeof UpdatesRoute
   '/vix': typeof VixRoute
+  '/watch': typeof WatchRoute
   '/xlm': typeof XlmRoute
   '/xrp': typeof XrpRoute
 }
@@ -212,6 +219,7 @@ export interface FileRoutesByTo {
   '/truth': typeof TruthRoute
   '/updates': typeof UpdatesRoute
   '/vix': typeof VixRoute
+  '/watch': typeof WatchRoute
   '/xlm': typeof XlmRoute
   '/xrp': typeof XrpRoute
 }
@@ -240,6 +248,7 @@ export interface FileRoutesById {
   '/truth': typeof TruthRoute
   '/updates': typeof UpdatesRoute
   '/vix': typeof VixRoute
+  '/watch': typeof WatchRoute
   '/xlm': typeof XlmRoute
   '/xrp': typeof XrpRoute
 }
@@ -269,6 +278,7 @@ export interface FileRouteTypes {
     | '/truth'
     | '/updates'
     | '/vix'
+    | '/watch'
     | '/xlm'
     | '/xrp'
   fileRoutesByTo: FileRoutesByTo
@@ -296,6 +306,7 @@ export interface FileRouteTypes {
     | '/truth'
     | '/updates'
     | '/vix'
+    | '/watch'
     | '/xlm'
     | '/xrp'
   id:
@@ -323,6 +334,7 @@ export interface FileRouteTypes {
     | '/truth'
     | '/updates'
     | '/vix'
+    | '/watch'
     | '/xlm'
     | '/xrp'
   fileRoutesById: FileRoutesById
@@ -351,6 +363,7 @@ export interface RootRouteChildren {
   TruthRoute: typeof TruthRoute
   UpdatesRoute: typeof UpdatesRoute
   VixRoute: typeof VixRoute
+  WatchRoute: typeof WatchRoute
   XlmRoute: typeof XlmRoute
   XrpRoute: typeof XrpRoute
 }
@@ -518,6 +531,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VixRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/watch': {
+      id: '/watch'
+      path: '/watch'
+      fullPath: '/watch'
+      preLoaderRoute: typeof WatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/xlm': {
       id: '/xlm'
       path: '/xlm'
@@ -559,6 +579,7 @@ const rootRouteChildren: RootRouteChildren = {
   TruthRoute: TruthRoute,
   UpdatesRoute: UpdatesRoute,
   VixRoute: VixRoute,
+  WatchRoute: WatchRoute,
   XlmRoute: XlmRoute,
   XrpRoute: XrpRoute,
 }

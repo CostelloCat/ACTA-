@@ -29,7 +29,7 @@ type FlowModel = {
   trade: TradeLens;
 };
 
-type TradeLens = {
+export type TradeLens = {
   clock: string;
   firstMove: string;
   vehicles: string;
@@ -111,7 +111,7 @@ function expressionsFor(signal: CatalystSignal) {
   ];
 }
 
-function tradeLensFor(signal: CatalystSignal): TradeLens {
+export function tradeLensFor(signal: CatalystSignal): TradeLens {
   const text = `${signal.actor} ${signal.title} ${signal.hits}`;
 
   if (/ENERGY|WTI|BRENT|oil|crude|tanker|hormuz/i.test(text)) {
