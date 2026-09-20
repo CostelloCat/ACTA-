@@ -1,6 +1,6 @@
 # ACTA OPS STATUS
 
-_Last updated: 2026-09-20 (Claude, ACTA Relationship Engine preview at `/lab` through the Desk/Watch Mode pass, plus a proposal-only Conviction/Crowd Context write-up per explicit "do not build yet" — see PR #1 for detail)_
+_Last updated: 2026-09-20 (Claude, ACTA Relationship Engine preview at `/lab`: Desk/Watch Mode pass, a proposal-only Crowd Context write-up, then a first tangible Crowd Context build (live Attention + labeled sample/demo-logic blocks) — see PR #1 for detail)_
 
 ## North Star
 Keep the trader at the desk. ACTA should quickly answer **WHAT / WHY / NEXT** while preserving user choice and source transparency.
@@ -97,6 +97,22 @@ Built per Ops's "build an ACTA Relationship Engine preview" directive, as a smal
   - *No gamified score* — deliberately a plain count, not an index.
   - *Utility-first, second-monitor friendly* — fits directly into the existing Watch Mode "Human Signal" block as a factual line above the existing search links, not a new module.
 - **What this needs before even the smallest version can be built** (so nothing is assumed settled): (1) a yes/no on whether the AI-gloss line ships at all, given it's the one part with a real recurring cost; (2) a decision on time window (24h is proposed, arbitrary); (3) explicit sign-off that "count + source list, no score" is the right ceiling for a v1, since the more interesting dimensions (acceleration, divergence, consensus) all require infrastructure ACTA doesn't have yet and are out of scope until that's built or explicitly funded.
+
+**Update 2026-09-20 — first tangible Crowd Context build**, per Ops's follow-up directive to build the smallest tangible version. Still `/lab` → Watch mode only; two files touched (`impact-map-data.ts` for the sample narrative data, `impact-map.tsx` for the block itself). No new route, no new vendor, no broker logic.
+
+1. **Preview route**: `/lab` → toggle "Watch mode" → new "Crowd context for '<focused event/node>'" section beneath Next 3 Prints / Human Signal.
+2. **What is genuinely live vs. sample/manual**:
+   - **Attention (live)** — calls `getNameNews({ q })`, the exact same live Google News search `BookNews` already uses elsewhere in ACTA (`when:2d`, top 6 results). Shows a real count, real distinct-outlet count, and the top 3 real headlines with real source + link. Re-fetches whenever the focused node changes, so it stays wired to the Relationship Engine diagram as asked.
+   - **Agreement / Split (sample)** — hand-authored narrative buckets (in `impact-map-data.ts`'s new `CROWD_CONTEXT`) with illustrative percentage splits that sum to 100. Tagged `SAMPLE` on the page itself, with an explicit line underneath saying it isn't derived from real posts or a measured consensus.
+   - **Divergence (demo logic)** — one static, hand-written sentence per event, tagged `DEMO LOGIC` on the page itself, exactly per the directive's own escape hatch for when real aggregation isn't feasible yet.
+   - **No score of any kind** anywhere in the block — no bullish/bearish, no buy/sell framing, no "herd says X."
+3. **Sources used**: only `getNameNews`'s existing Google News RSS search (already-live, no new vendor) for Attention; the sample/demo pieces cite no external source because they aren't derived from one — that absence is itself disclosed on the page.
+4. **What to observe during live trading**: whether the real "Attention" count/headlines are actually useful at a glance during an active session (does a spike in wire mentions correlate with anything a trader would act on, or is it noise); and, separately, whether the honest "sample"/"demo logic" framing on the other two blocks reads as useful context or as a letdown once a trader realizes they aren't real — that reaction is itself the signal for whether real aggregation is worth building.
+5. **Single next smallest validation step**: watch the real "Attention" block against 1–2 actual live prints (it already updates automatically as Watch Mode narrates through nodes) and see whether headline *volume* alone is worth having, before any investment in real narrative-clustering or divergence-detection infrastructure.
+
+**Known sandbox limitation, not a code defect**: this container's network egress policy blocks the outbound Google News RSS request the same way it blocks `*.vercel.app` (documented earlier in this file), so local verification shows the honest empty-state ("No recent wire mentions found") rather than real headlines. `getNameNews` is the same function already running successfully on the live Vercel deployment (Ryan's earlier live-trading session used pages that call it), so this should render real results there — worth Ryan confirming directly on the preview URL.
+
+Re-verified: `npm run typecheck` and `npm run build` both clean; screenshotted the full Crowd Context block layout in a headless browser (Attention/Split/Divergence columns, correct tags, no clipping).
 
 ## Launch Polish — After Build Gate
 - [x] Restore intended iridescent ACTA typography treatment — done 2026-09-18 (Claude), refined against the canonical reference (comment `5724696603`): dropped the gold/cream anchor entirely (spec explicitly says "not metallic gold") and now cycle through lavender → pink → peach → pale green → cyan, evenly spaced, same `.foil` animation mechanism. Visually verified frame-by-frame in a headless browser — five frames each showing a distinct hue from the spec. One CSS rule, no layout change. **Open question**: the spec also says this should be "strongest on... the hero headline," but nothing in the app is currently an unambiguous marketing hero headline — the only large display text besides the ACTA lockup is functional (e.g. the live session name "ASIA"/"LONDON"/"NEW YORK", or a book page's `<h1>` like "NQ / MNQ"). Applying an animated gradient to a live status indicator risks hurting legibility of something functional, which the spec itself guards against ("body/interface copy remains highly readable"). Holding off extending `.foil` anywhere else until you point to the specific element meant by "hero headline."

@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { EVENTS, upcomingFrom, type CalEvent } from "@/lib/calendar";
-import { IMPACT_GRAPHS, type ImpactEdge, type ImpactGraph, type ImpactNode, type ImpactNodeKind } from "@/lib/impact-map-data";
+import { getNameNews, leadAge, type NewsItem } from "@/lib/desk";
+import {
+  CROWD_CONTEXT,
+  IMPACT_GRAPHS,
+  type ImpactEdge,
+  type ImpactGraph,
+  type ImpactNode,
+  type ImpactNodeKind,
+} from "@/lib/impact-map-data";
 import { cn } from "@/lib/utils";
 
 const COLUMN_ORDER: ImpactNodeKind[] = ["mechanism", "asset", "sector", "company"];
@@ -82,6 +90,8 @@ export function ImpactMap() {
   const [watchStep, setWatchStep] = useState(0);
   const [watchPaused, setWatchPaused] = useState(false);
   const [pinned, setPinned] = useState<{ label: string; href: string } | null>(null);
+  const [attention, setAttention] = useState<NewsItem[] | null>(null);
+  const [attentionLoading, setAttentionLoading] = useState(false);
 
   const sourceEvent = findGraphSourceEvent(graph);
   const today = isoToday();
@@ -188,6 +198,28 @@ export function ImpactMap() {
   const humanSignalQuery = selectedNode?.label ?? sourceEvent?.title ?? graph.eventTitle;
   const youtubeSearchHref = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${humanSignalQuery} market reaction`)}`;
   const xSearchHref = `https://x.com/search?q=${encodeURIComponent(humanSignalQuery)}&f=live`;
+
+  // "Attention" is the one Crowd Context dimension backed by real data: the same live wire
+  // search (`getNameNews`) BookNews already calls per instrument — a genuine mention count and
+  // source list, not a fabricated one. It re-fetches whenever the focused node changes, so it
+  // stays connected to whatever the Relationship Engine diagram is currently pointed at.
+  useEffect(() => {
+    if (!watching) return;
+    let alive = true;
+    setAttentionLoading(true);
+    void getNameNews({ data: { q: humanSignalQuery } }).then((rows) => {
+      if (alive) {
+        setAttention(rows);
+        setAttentionLoading(false);
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, [watching, humanSignalQuery]);
+
+  const crowdContext = CROWD_CONTEXT[graph.id] ?? null;
+  const attentionSources = attention ? new Set(attention.map((a) => a.source)).size : 0;
 
   const diagram = (
     <div className="border-line bg-surface relative overflow-hidden rounded-2xl border">
@@ -463,6 +495,85 @@ export function ImpactMap() {
           </div>
         </div>
       ) : null}
+
+      {watching ? (
+        <div className="border-line mt-6 border-t pt-6">
+          <p className="text-muted text-[10px] tracking-[0.2em] uppercase">
+            Crowd context for "{humanSignalQuery}" — context, not advice
+          </p>
+          <div className="mt-3 grid gap-4 sm:grid-cols-3">
+            <div>
+              <span className="border-fg/30 text-fg rounded-full border px-1.5 py-0.5 text-[8px] tracking-[0.14em] uppercase">
+                Live data
+              </span>
+              <p className="text-muted mt-1.5 text-[10px] tracking-[0.16em] uppercase">Attention</p>
+              {attentionLoading ? (
+                <p className="text-muted mt-1 text-xs">Checking the live wire…</p>
+              ) : attention && attention.length ? (
+                <>
+                  <p className="mt-1 text-xs leading-relaxed">
+                    <span className="text-fg">{attention.length} headline{attention.length === 1 ? "" : "s"}</span> in
+                    the last 2 days across <span className="text-fg">{attentionSources}</span> outlet
+                    {attentionSources === 1 ? "" : "s"}.
+                  </p>
+                  <ul className="mt-1.5 space-y-1">
+                    {attention.slice(0, 3).map((item) => (
+                      <li key={item.title}>
+                        <a
+                          href={item.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-fg block text-xs leading-snug no-underline hover:underline"
+                        >
+                          {item.title}
+                        </a>
+                        <span className="text-muted text-[10px] tracking-wide uppercase">
+                          {item.source}
+                          {leadAge(item.published) ? ` · ${leadAge(item.published)}` : ""}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <p className="text-muted mt-1 text-xs">No recent wire mentions found.</p>
+              )}
+            </div>
+
+            <div>
+              <span className="border-line text-muted rounded-full border border-dashed px-1.5 py-0.5 text-[8px] tracking-[0.14em] uppercase">
+                Sample
+              </span>
+              <p className="text-muted mt-1.5 text-[10px] tracking-[0.16em] uppercase">Agreement / split</p>
+              {crowdContext ? (
+                <ul className="mt-1 space-y-1.5">
+                  {crowdContext.narratives.map((n) => (
+                    <li key={n.label} className="text-xs leading-relaxed">
+                      <span className="text-fg">{n.share}%</span> {n.label}
+                      <span className="text-muted block text-[11px]">{n.note}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-muted mt-1 text-xs">No sample framing for this print yet.</p>
+              )}
+              <p className="text-muted mt-1.5 text-[10px] leading-relaxed">
+                Illustrative sample framing — not derived from real posts or a live consensus measurement.
+              </p>
+            </div>
+
+            <div>
+              <span className="border-line text-muted rounded-full border border-dashed px-1.5 py-0.5 text-[8px] tracking-[0.14em] uppercase">
+                Demo logic
+              </span>
+              <p className="text-muted mt-1.5 text-[10px] tracking-[0.16em] uppercase">Divergence</p>
+              <p className="mt-1 text-xs leading-relaxed">
+                {crowdContext?.divergenceNote ?? "No demo divergence note for this print yet."}
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 
@@ -518,7 +629,11 @@ export function ImpactMap() {
           ACTA calendar
         </Link>
         . "Watch mode" is a first exploration of a second-monitor "desk companion" concept —
-        see the report for what a real version would still need.
+        see the report for what a real version would still need. In its Crowd Context block, only
+        "Attention" is real (a live wire search via the same endpoint `BookNews` already uses
+        elsewhere in ACTA); "Agreement / split" is a hand-authored sample framing and
+        "Divergence" is a static demo-logic sentence — neither is measured from any live feed,
+        and none of it is investment advice.
       </p>
     </div>
   );

@@ -247,3 +247,43 @@ export const IMPACT_GRAPHS: ImpactGraph[] = [
     ],
   },
 ];
+
+export type CrowdNarrative = {
+  label: string;
+  share: number;
+  note: string;
+};
+
+export type CrowdContext = {
+  /** Hand-authored, illustrative framings of public discussion — not derived from any live post or feed. */
+  narratives: CrowdNarrative[];
+  /** A single illustrative sentence, not computed from real price or narrative data. */
+  divergenceNote: string;
+};
+
+/**
+ * SAMPLE / PROTOTYPE data for the Conviction / Crowd Context exploration. Unlike the
+ * `IMPACT_GRAPHS` relationship data (which is at least grounded in the real `markets.ts` prose),
+ * these narrative splits are illustrative placeholders standing in for a real aggregation ACTA
+ * doesn't have the infrastructure to measure yet — see OPS_STATUS.md for what that would take.
+ */
+export const CROWD_CONTEXT: Record<string, CrowdContext> = {
+  cpi: {
+    narratives: [
+      { label: "Inflation cooling, Fed has room to ease", share: 45, note: "Reads the print as confirming disinflation continues." },
+      { label: "Core still sticky, hawkish risk stays", share: 35, note: "Focuses on services/shelter components staying firm." },
+      { label: "One print is noise, wait for the trend", share: 20, note: "Discounts the single release either direction." },
+    ],
+    divergenceNote:
+      "Demo logic: price sometimes front-runs the CPI print itself (positioning into 8:30) and then reverses once the dominant narrative above catches up — not measured here.",
+  },
+  fomc: {
+    narratives: [
+      { label: "Dots confirm the cutting path", share: 40, note: "Reads the SEP as validating an easing cycle already priced." },
+      { label: "Powell sounds more hawkish than the dots", share: 38, note: "Weighs presser tone over the projections themselves." },
+      { label: "Decision is a non-event, watch the next SEP", share: 22, note: "Treats a non-SEP meeting as low-signal." },
+    ],
+    divergenceNote:
+      "Demo logic: the market's first reaction to the 14:00 statement often diverges from where it settles after the 14:30 presser — not measured here.",
+  },
+};
