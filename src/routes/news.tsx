@@ -34,8 +34,7 @@ function NewsPage() {
   const items = desk.wires[wireKey] ?? desk.national;
   const natives = outletsOn(region);
   const signals = buildCatalystSignals({ mosaic, news: Object.values(desk.wires).flat() });
-  const [activeSignalId, setActiveSignalId] = useState(() => signals[0]?.id ?? "");
-  const activeSignal = signals.find((signal) => signal.id === activeSignalId) ?? signals[0] ?? null;
+  const activeSignal = signals[0] ?? null;
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -66,9 +65,7 @@ function NewsPage() {
 
         <div className="mt-5">
           <GlobalFlow
-            signals={signals}
             activeSignal={activeSignal}
-            onSignal={(signal) => setActiveSignalId(signal.id)}
             quotes={desk.quotes}
           />
         </div>

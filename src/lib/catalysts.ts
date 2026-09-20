@@ -108,7 +108,7 @@ export const CATALYST_WATCHLIST: CatalystWatch[] = [
   },
 ];
 
-const BREAKING_PATTERN = /breaking|live updates?|emergency|unexpectedly|halt(?:ed)?|strike[sd]?|attack(?:ed|s)?|resign(?:s|ed)?|declare[sd]?|announce[sd]?/i;
+const BREAKING_PATTERN = /\bbreaking\b|live updates?|\bemergency\b|unexpectedly|trading halt(?:ed)?|market halt(?:ed)?|airspace clos(?:ed|ure)|strait clos(?:ed|ure)|missile|strike[sd]?|attack(?:ed|s)?|resign(?:s|ed)?|declare[sd]?|announce[sd]?/i;
 const MIC_PATTERN = /keynote|devday|presser|press conference|remarks|speaks?|earnings call|fireside chat/i;
 const APPEARANCE_PATTERN = /\blive\b|speaks?|remarks|keynote|interview|testif(?:y|ies)|press conference|town hall|fireside chat/i;
 const LIVE_WINDOW_MS = 90 * 60 * 1000;

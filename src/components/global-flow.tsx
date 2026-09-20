@@ -320,14 +320,10 @@ function nodePositions(model: FlowModel) {
 }
 
 export function GlobalFlow({
-  signals,
   activeSignal,
-  onSignal,
   quotes,
 }: {
-  signals: CatalystSignal[];
   activeSignal: CatalystSignal | null;
-  onSignal: (signal: CatalystSignal) => void;
   quotes: Quote[];
 }) {
   const [selectedId, setSelectedId] = useState("event");
@@ -354,32 +350,62 @@ export function GlobalFlow({
   return (
     <section className="global-flow overflow-hidden rounded-3xl border border-line bg-black/55">
       <header className="border-b border-line px-4 py-4 sm:px-6 sm:py-5">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-4xl">
             <p className="text-gold text-[11px] tracking-[0.22em] uppercase">Global intelligence flow</p>
-            <h2 className="mt-1 text-2xl sm:text-3xl">Catalyst → repricing → trade map</h2>
+            <h2 className="mt-1 text-xl leading-tight sm:text-3xl">{activeSignal.title}</h2>
+            <p className="text-muted mt-2 text-[11px] tracking-wide uppercase">
+              {activeSignal.actor} · {statusLabel(activeSignal)} · {activeSignal.source}
+            </p>
           </div>
-          <div className="flex max-w-full gap-1.5 overflow-x-auto pb-1" aria-label="Choose a catalyst to map">
-            {signals.slice(0, 6).map((signal) => (
-              <button
-                key={signal.id}
-                type="button"
-                className={cn("pill", signal.id === activeSignal.id && "pill-on")}
-                onClick={() => onSignal(signal)}
-              >
-                {signal.actor} · {statusLabel(signal)}
-              </button>
-            ))}
+          <div className="rounded-xl border border-gold/35 bg-gold/5 px-3 py-2 text-right">
+            <p className="text-gold text-[9px] tracking-[0.18em] uppercase">Automatic priority</p>
+            <p className="mt-1 text-xs">Highest-impact active signal</p>
           </div>
         </div>
+        <p className="text-muted mt-4 text-xs">Catalyst → repricing → trade map</p>
         <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[10px] tracking-[0.14em] uppercase">
           <span className="text-muted"><b className="text-fg font-medium">Source-linked</b> evidence</span>
           <span className="text-muted"><b className="text-fg font-medium">Curated</b> relationships</span>
           <span className="text-muted"><b className="text-fg font-medium">Social</b> attention, not confirmation</span>
         </div>
+        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-4" aria-label="Relevant live market tape">
+          <span className="text-muted mr-1 text-[9px] tracking-[0.16em] uppercase">Tape check</span>
+          {tape.length ? tape.map((quote) => (
+            <span key={quote.symbol} className="rounded-full border border-line bg-black/40 px-2.5 py-1 text-[11px] tabular-nums">
+              <b className="font-medium">{quote.label}</b> {quote.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}{" "}
+              <span className={quote.changePct < 0 ? "text-down" : "text-up"}>{quote.changePct >= 0 ? "+" : ""}{quote.changePct.toFixed(2)}%</span>
+            </span>
+          )) : <span className="text-muted text-[11px]">Live confirmation values unavailable · relationship map only</span>}
+        </div>
       </header>
 
-      <div className="relative hidden h-[470px] md:block" onMouseLeave={() => setHoveredId(null)}>
+      <section className="border-b border-line bg-black/35 p-4 sm:p-6" aria-label="Trader decision map">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-gold text-[10px] tracking-[0.2em] uppercase">Trader lens · conditional, not a call</p>
+            <h3 className="mt-1 text-xl">What has to happen for this to matter?</h3>
+          </div>
+          <p className="text-muted max-w-md text-right text-[11px] tracking-wide uppercase">{model.trade.clock}</p>
+        </div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+          {[
+            ["DIRECT TAPE", model.trade.firstMove],
+            ["VEHICLES / PROXY RISK", model.trade.vehicles],
+            ["BENEFITS IF CONFIRMED", model.trade.beneficiaries],
+            ["UNDER PRESSURE", model.trade.pressure],
+            ["CONFIRM WITH", model.trade.confirms],
+            ["THESIS FAILS IF", model.trade.invalidates],
+          ].map(([label, value]) => (
+            <article key={label} className="rounded-xl border border-line bg-surface/80 p-3">
+              <p className="text-muted text-[9px] tracking-[0.16em] uppercase">{label}</p>
+              <p className="mt-2 text-xs leading-relaxed">{value}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <div className="relative hidden h-[400px] md:block" onMouseLeave={() => setHoveredId(null)}>
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(201,184,234,.10),transparent_38%)]" />
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true">
           {model.edges.map((edge) => {
@@ -457,40 +483,6 @@ export function GlobalFlow({
           );
         })}
       </div>
-
-      <section className="border-t border-line bg-black/35 p-4 sm:p-6" aria-label="Trader decision map">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="text-gold text-[10px] tracking-[0.2em] uppercase">Trader lens · conditional, not a call</p>
-            <h3 className="mt-1 text-xl">What has to happen for this to matter?</h3>
-          </div>
-          <p className="text-muted max-w-md text-right text-[11px] tracking-wide uppercase">{model.trade.clock}</p>
-        </div>
-        <div className="mt-4 flex flex-wrap items-center gap-2" aria-label="Relevant live market tape">
-          <span className="text-muted mr-1 text-[9px] tracking-[0.16em] uppercase">Tape check</span>
-          {tape.length ? tape.map((quote) => (
-            <span key={quote.symbol} className="rounded-full border border-line bg-black/40 px-2.5 py-1 text-[11px] tabular-nums">
-              <b className="font-medium">{quote.label}</b> {quote.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}{" "}
-              <span className={quote.changePct < 0 ? "text-down" : "text-up"}>{quote.changePct >= 0 ? "+" : ""}{quote.changePct.toFixed(2)}%</span>
-            </span>
-          )) : <span className="text-muted text-[11px]">Live confirmation values unavailable · relationship map only</span>}
-        </div>
-        <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-          {[
-            ["DIRECT TAPE", model.trade.firstMove],
-            ["VEHICLES / PROXY RISK", model.trade.vehicles],
-            ["BENEFITS IF CONFIRMED", model.trade.beneficiaries],
-            ["UNDER PRESSURE", model.trade.pressure],
-            ["CONFIRM WITH", model.trade.confirms],
-            ["THESIS FAILS IF", model.trade.invalidates],
-          ].map(([label, value]) => (
-            <article key={label} className="rounded-xl border border-line bg-surface/80 p-3">
-              <p className="text-muted text-[9px] tracking-[0.16em] uppercase">{label}</p>
-              <p className="mt-2 text-xs leading-relaxed">{value}</p>
-            </article>
-          ))}
-        </div>
-      </section>
 
       <div className="border-t border-line bg-surface/80 p-4 sm:p-6" style={{ borderTopColor: KIND_COLOR[selectedNode.kind] }}>
         <div className="flex flex-wrap items-start justify-between gap-4">
