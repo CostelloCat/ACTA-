@@ -44,10 +44,37 @@ function strengthLabel(weight: number) {
   return "Secondary factor";
 }
 
+/**
+ * The strongest complete event -> mechanism -> asset -> sector -> company chain — the
+ * "read this first" path. Scored by its weakest link (bottleneck), not total weight, so a
+ * chain isn't rewarded for one strong hop hiding a weak one; a shortcut that skips a column
+ * (there are a couple in the sample data) never satisfies the required depth, so it's ignored.
+ */
+function computePrimaryPath(graph: ImpactGraph): Set<string> {
+  const nodesById = new Map(graph.nodes.map((n) => [n.id, n]));
+  let best: { ids: string[]; score: number } | null = null;
+
+  function dfs(currentId: string, chainIds: string[], minWeight: number, depth: number) {
+    if (depth === COLUMN_ORDER.length) {
+      if (nodesById.get(currentId)?.kind === "company" && (!best || minWeight > best.score)) {
+        best = { ids: chainIds, score: minWeight };
+      }
+      return;
+    }
+    for (const edge of graph.edges.filter((e) => e.from === currentId)) {
+      dfs(edge.to, [...chainIds, edge.to], Math.min(minWeight, edge.weight), depth + 1);
+    }
+  }
+
+  dfs("event", ["event"], Infinity, 0);
+  return new Set(best ? (best as { ids: string[]; score: number }).ids : ["event"]);
+}
+
 export function ImpactMap() {
   const [graphId, setGraphId] = useState(IMPACT_GRAPHS[0]!.id);
   const graph = IMPACT_GRAPHS.find((g) => g.id === graphId) ?? IMPACT_GRAPHS[0]!;
   const [selection, setSelection] = useState<Selection>({ kind: "event" });
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const sourceEvent = findGraphSourceEvent(graph);
   const today = isoToday();
@@ -56,6 +83,7 @@ export function ImpactMap() {
     : nextOfKind(graph.eventKind, today);
 
   const nodesById = useMemo(() => new Map(graph.nodes.map((n) => [n.id, n])), [graph]);
+  const primaryPathIds = useMemo(() => computePrimaryPath(graph), [graph]);
 
   const columns = useMemo(() => {
     return COLUMN_ORDER.map((kind) => ({
@@ -81,8 +109,18 @@ export function ImpactMap() {
   }, [columns]);
 
   const selectedId = selection.kind === "node" ? selection.id : "event";
-  const relatedEdges = graph.edges.filter((e) => e.from === selectedId || e.to === selectedId);
-  const relatedIds = new Set(relatedEdges.flatMap((e) => [e.from, e.to]));
+  // Hover always previews a connection; otherwise a clicked node governs the diagram, and with
+  // nothing clicked yet we default to the single highest-weight path so it reads in ~2 seconds.
+  const focusId = hoveredId ?? (selection.kind === "node" ? selection.id : null);
+  const relatedIds = focusId
+    ? new Set(
+        graph.edges
+          .filter((e) => e.from === focusId || e.to === focusId)
+          .flatMap((e) => [e.from, e.to])
+          .concat(focusId),
+      )
+    : primaryPathIds;
+  const isDefaultPath = !focusId;
 
   const selectedNode: ImpactNode | null =
     selection.kind === "node" ? graph.nodes.find((n) => n.id === selection.id) ?? null : null;
@@ -99,6 +137,8 @@ export function ImpactMap() {
     return target ? KIND_ACCENT[target.kind] : EVENT_ACCENT;
   }
 
+  const panelAccent = selectedNode ? KIND_ACCENT[selectedNode.kind] : EVENT_ACCENT;
+
   return (
     <div>
       <div className="mb-4 flex flex-wrap gap-1.5">
@@ -110,6 +150,7 @@ export function ImpactMap() {
             onClick={() => {
               setGraphId(g.id);
               setSelection({ kind: "event" });
+              setHoveredId(null);
             }}
           >
             {g.eventTitle}
@@ -119,14 +160,14 @@ export function ImpactMap() {
 
       <div className="border-line bg-surface relative overflow-hidden rounded-2xl border">
         <div
-          className="pointer-events-none absolute -top-24 -left-24 size-72 rounded-full opacity-20 blur-3xl"
+          className="pointer-events-none absolute -top-24 -left-24 size-72 rounded-full opacity-15 blur-3xl"
           style={{ background: KIND_ACCENT.mechanism }}
         />
         <div
-          className="pointer-events-none absolute -right-24 -bottom-24 size-72 rounded-full opacity-20 blur-3xl"
+          className="pointer-events-none absolute -right-24 -bottom-24 size-72 rounded-full opacity-15 blur-3xl"
           style={{ background: KIND_ACCENT.company }}
         />
-        <div className="relative aspect-[16/10] w-full sm:aspect-[16/8]">
+        <div className="relative aspect-[16/10] w-full sm:aspect-[16/8]" onMouseLeave={() => setHoveredId(null)}>
           <svg
             viewBox="0 0 100 100"
             preserveAspectRatio="none"
@@ -145,9 +186,9 @@ export function ImpactMap() {
                   key={`${edge.from}-${edge.to}-${i}`}
                   d={d}
                   fill="none"
-                  stroke={active ? color : "var(--color-muted)"}
-                  strokeWidth={active ? 0.6 + edge.weight * 1.0 : 0.25 + edge.weight * 0.35}
-                  opacity={active ? 0.95 : 0.28 + edge.weight * 0.2}
+                  stroke={active ? color : "var(--color-line)"}
+                  strokeWidth={active ? 0.6 + edge.weight * 1.0 : 0.18 + edge.weight * 0.12}
+                  opacity={active ? 0.95 : 0.35}
                   style={active ? { filter: `drop-shadow(0 0 2.5px ${color}aa)` } : undefined}
                 />
               );
@@ -157,14 +198,15 @@ export function ImpactMap() {
           <button
             type="button"
             onClick={() => setSelection({ kind: "event" })}
+            onMouseEnter={() => setHoveredId("event")}
             className={cn(
-              "bg-raised absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-xl border px-2.5 py-2 text-left transition-shadow",
+              "bg-raised absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-xl border px-2.5 py-2 text-left transition-all",
               "w-24 sm:w-28",
             )}
             style={{
               left: `${positions.get("event")!.x}%`,
               top: `${positions.get("event")!.y}%`,
-              borderColor: selectedId === "event" ? EVENT_ACCENT : "var(--color-line)",
+              borderColor: selectedId === "event" || relatedIds.has("event") ? EVENT_ACCENT : "var(--color-line)",
               boxShadow:
                 selectedId === "event" ? `0 0 0 1px ${EVENT_ACCENT}66, 0 0 18px ${EVENT_ACCENT}55` : undefined,
             }}
@@ -184,15 +226,16 @@ export function ImpactMap() {
                   key={node.id}
                   type="button"
                   onClick={() => setSelection({ kind: "node", id: node.id })}
+                  onMouseEnter={() => setHoveredId(node.id)}
                   className={cn(
-                    "bg-raised absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-xl border px-2 py-1.5 text-left transition-shadow",
+                    "bg-raised absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-xl border px-2 py-1.5 text-left transition-all",
                     "w-24 sm:w-28",
-                    !active && selectedId !== "event" && "opacity-45",
+                    !active && "opacity-35",
                   )}
                   style={{
                     left: `${pos.x}%`,
                     top: `${pos.y}%`,
-                    borderColor: isSelected ? accent : "var(--color-line)",
+                    borderColor: isSelected ? accent : active ? `${accent}88` : "var(--color-line)",
                     boxShadow: isSelected
                       ? `0 0 0 1px ${accent}66, 0 0 16px ${accent}55`
                       : active
@@ -200,13 +243,19 @@ export function ImpactMap() {
                         : undefined,
                   }}
                 >
-                  <span className="flex items-center gap-1">
-                    <i className="size-1.5 shrink-0 rounded-full" style={{ backgroundColor: accent }} />
-                    <span className="text-muted text-[9px] tracking-[0.14em] uppercase">
-                      {COLUMN_LABEL[node.kind]}
+                  {active ? (
+                    <span className="flex items-center gap-1">
+                      <i className="size-1.5 shrink-0 rounded-full" style={{ backgroundColor: accent }} />
+                      <span className="text-muted text-[9px] tracking-[0.14em] uppercase">
+                        {COLUMN_LABEL[node.kind]}
+                      </span>
                     </span>
-                  </span>
-                  <p className="text-fg mt-0.5 text-[11px] leading-tight">{node.label}</p>
+                  ) : (
+                    <i className="mb-0.5 block size-1.5 rounded-full" style={{ backgroundColor: accent }} />
+                  )}
+                  <p className={cn("mt-0.5 text-[11px] leading-tight", active ? "text-fg" : "text-muted")}>
+                    {node.label}
+                  </p>
                 </button>
               );
             }),
@@ -214,23 +263,29 @@ export function ImpactMap() {
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-4 text-[11px] tracking-wide uppercase">
+      <div className="mt-4 flex flex-wrap items-center gap-4 text-[11px] tracking-wide uppercase">
         {COLUMN_ORDER.map((k) => (
           <span key={k} className="text-muted flex items-center gap-1.5">
             <i className="size-2 rounded-full" style={{ backgroundColor: KIND_ACCENT[k] }} />
             {COLUMN_LABEL[k]}
           </span>
         ))}
-        <span className="text-muted flex items-center gap-1.5">
-          Line thickness · glow = relationship strength
-        </span>
+        <span className="text-muted normal-case">Line weight = relationship strength · hover any node to trace it</span>
       </div>
 
-      <div className="border-line bg-surface mt-5 rounded-2xl border p-5">
+      <div
+        className="bg-surface mt-5 rounded-2xl border-t-2 p-5 shadow-[0_8px_30px_rgb(0,0,0,0.25)]"
+        style={{ borderTopColor: panelAccent, borderLeft: "1px solid var(--color-line)", borderRight: "1px solid var(--color-line)", borderBottom: "1px solid var(--color-line)" }}
+      >
         {selection.kind === "event" && sourceEvent ? (
           <>
+            {isDefaultPath ? (
+              <p className="text-muted mb-3 text-[10px] tracking-[0.18em] uppercase">
+                Primary path shown below — hover or click any node to trace an alternate one
+              </p>
+            ) : null}
             <p className="text-muted text-[10px] tracking-[0.22em] uppercase">What</p>
-            <p className="mt-1 text-lg">
+            <p className="mt-1 text-xl">
               {sourceEvent.title}
               {sourceEvent.time ? ` · ${sourceEvent.time} ET` : ""}
             </p>
@@ -247,7 +302,7 @@ export function ImpactMap() {
         {selectedNode ? (
           <>
             <p className="text-muted text-[10px] tracking-[0.22em] uppercase">What</p>
-            <p className="mt-1 text-lg">{selectedNode.label}</p>
+            <p className="mt-1 text-xl">{selectedNode.label}</p>
             <p className="mt-1 text-sm leading-relaxed">{selectedNode.what}</p>
             <div className="mt-3 flex items-center gap-2">
               <p className="text-muted text-[10px] tracking-[0.22em] uppercase">Why it's connected</p>
@@ -255,8 +310,8 @@ export function ImpactMap() {
                 <span
                   className="rounded-full px-2 py-0.5 text-[9px] tracking-[0.1em] uppercase"
                   style={{
-                    color: KIND_ACCENT[selectedNode.kind],
-                    border: `1px solid ${KIND_ACCENT[selectedNode.kind]}66`,
+                    color: panelAccent,
+                    border: `1px solid ${panelAccent}66`,
                   }}
                 >
                   {strengthLabel(selectedStrength)}
@@ -281,7 +336,7 @@ export function ImpactMap() {
       <p className="text-muted mt-4 text-xs leading-relaxed">
         <strong className="text-fg">Provenance:</strong> the relationships above are illustrative, hand-curated by
         ACTA engineering for this preview — they are not live correlation data and nothing here reflects a real-time
-        signal. Relationship strength (line thickness/glow, and the "primary driver" / "notable factor" / "secondary
+        signal. Relationship strength (line weight/glow, and the "primary driver" / "notable factor" / "secondary
         factor" labels) is likewise hand-estimated, not measured — in production it would be the `weight` column
         ENGINEERING_AUDIT_001.md §E already proposes for `instrument_influence`. The event card itself (
         {sourceEvent?.title ?? graph.eventTitle}) pulls its real WHAT/WHY text from the live{" "}
