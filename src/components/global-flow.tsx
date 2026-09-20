@@ -83,11 +83,11 @@ function expressionsFor(signal: CatalystSignal) {
       { label: "NEM · homebuilders", why: "Gold miners and rate-sensitive housing names express different branches of the same policy shock." },
     ];
   }
-  if (signal.actor === "OPENAI" || signal.actor === "NVDA") {
+  if (["OPENAI", "NVDA", "AAPL", "MSFT", "GOOGL", "AMZN", "META"].includes(signal.actor)) {
     return [
-      { label: "NVDA · AMD", why: "Compute demand and model economics reach semiconductor suppliers first." },
-      { label: "MSFT · ORCL", why: "Cloud distribution and infrastructure spend translate the event into platform exposure." },
-      { label: "Semis / software", why: "Breadth confirms whether the news is company-specific or moving the wider AI complex." },
+      { label: signal.actor === "OPENAI" ? "MSFT · NVDA" : signal.actor, why: "The named company or its closest listed partner is the most direct expression of company-specific news." },
+      { label: "Suppliers / partners", why: "Supply-chain and platform partners show whether the economics extend beyond the headline company." },
+      { label: "Peer breadth / NQ", why: "Peer and index breadth confirm whether the catalyst is becoming a group or market event." },
     ];
   }
   if (signal.actor === "ELON") {
@@ -150,7 +150,7 @@ function tradeLensFor(signal: CatalystSignal): TradeLens {
     };
   }
 
-  if (/OPENAI|NVDA|Altman|NVIDIA|AI|compute/i.test(text)) {
+  if (signal.actor !== "ELON" && /OPENAI|NVDA|AAPL|MSFT|GOOGL|AMZN|META|Altman|NVIDIA|Apple|Microsoft|Alphabet|Google|Amazon|Meta|AI|compute/i.test(text)) {
     return {
       clock: "Named company → suppliers / partners → semiconductor breadth → NQ",
       firstMove: "Named stock, closest suppliers, cloud partners, SOX relative strength",
