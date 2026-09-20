@@ -14,6 +14,8 @@ export type ImpactNode = {
 export type ImpactEdge = {
   from: string;
   to: string;
+  /** Illustrative relationship strength, 0–1 — mirrors the `weight` column ENGINEERING_AUDIT_001.md §E proposes for `instrument_influence`. */
+  weight: number;
 };
 
 export type ImpactGraph = {
@@ -119,19 +121,19 @@ export const IMPACT_GRAPHS: ImpactGraph[] = [
       },
     ],
     edges: [
-      { from: "event", to: "cpi-rate-path" },
-      { from: "event", to: "cpi-real-yields" },
-      { from: "cpi-rate-path", to: "cpi-dxy" },
-      { from: "cpi-real-yields", to: "cpi-10y" },
-      { from: "cpi-real-yields", to: "cpi-nqes" },
-      { from: "cpi-rate-path", to: "cpi-gold" },
-      { from: "cpi-real-yields", to: "cpi-gold" },
-      { from: "cpi-nqes", to: "cpi-megacap" },
-      { from: "cpi-10y", to: "cpi-financials" },
-      { from: "cpi-gold", to: "cpi-miners" },
-      { from: "cpi-megacap", to: "cpi-nvda" },
-      { from: "cpi-financials", to: "cpi-jpm" },
-      { from: "cpi-miners", to: "cpi-nem" },
+      { from: "event", to: "cpi-rate-path", weight: 0.95 },
+      { from: "event", to: "cpi-real-yields", weight: 0.9 },
+      { from: "cpi-rate-path", to: "cpi-dxy", weight: 0.8 },
+      { from: "cpi-real-yields", to: "cpi-10y", weight: 0.95 },
+      { from: "cpi-real-yields", to: "cpi-nqes", weight: 0.85 },
+      { from: "cpi-rate-path", to: "cpi-gold", weight: 0.6 },
+      { from: "cpi-real-yields", to: "cpi-gold", weight: 0.8 },
+      { from: "cpi-nqes", to: "cpi-megacap", weight: 0.9 },
+      { from: "cpi-10y", to: "cpi-financials", weight: 0.75 },
+      { from: "cpi-gold", to: "cpi-miners", weight: 0.7 },
+      { from: "cpi-megacap", to: "cpi-nvda", weight: 0.85 },
+      { from: "cpi-financials", to: "cpi-jpm", weight: 0.6 },
+      { from: "cpi-miners", to: "cpi-nem", weight: 0.65 },
     ],
   },
   {
@@ -229,19 +231,19 @@ export const IMPACT_GRAPHS: ImpactGraph[] = [
       },
     ],
     edges: [
-      { from: "event", to: "fomc-dots" },
-      { from: "event", to: "fomc-presser" },
-      { from: "fomc-dots", to: "fomc-dxy" },
-      { from: "fomc-dots", to: "fomc-gold" },
-      { from: "fomc-presser", to: "fomc-gold" },
-      { from: "fomc-presser", to: "fomc-nqes" },
-      { from: "fomc-presser", to: "fomc-vix" },
-      { from: "fomc-nqes", to: "fomc-megacap" },
-      { from: "fomc-gold", to: "fomc-miners" },
-      { from: "fomc-dots", to: "fomc-homebuilders" },
-      { from: "fomc-megacap", to: "fomc-nvda" },
-      { from: "fomc-miners", to: "fomc-nem" },
-      { from: "fomc-homebuilders", to: "fomc-dhi" },
+      { from: "event", to: "fomc-dots", weight: 0.95 },
+      { from: "event", to: "fomc-presser", weight: 0.9 },
+      { from: "fomc-dots", to: "fomc-dxy", weight: 0.8 },
+      { from: "fomc-dots", to: "fomc-gold", weight: 0.75 },
+      { from: "fomc-presser", to: "fomc-gold", weight: 0.6 },
+      { from: "fomc-presser", to: "fomc-nqes", weight: 0.9 },
+      { from: "fomc-presser", to: "fomc-vix", weight: 0.7 },
+      { from: "fomc-nqes", to: "fomc-megacap", weight: 0.9 },
+      { from: "fomc-gold", to: "fomc-miners", weight: 0.7 },
+      { from: "fomc-dots", to: "fomc-homebuilders", weight: 0.65 },
+      { from: "fomc-megacap", to: "fomc-nvda", weight: 0.85 },
+      { from: "fomc-miners", to: "fomc-nem", weight: 0.65 },
+      { from: "fomc-homebuilders", to: "fomc-dhi", weight: 0.6 },
     ],
   },
 ];
