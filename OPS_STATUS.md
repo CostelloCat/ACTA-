@@ -1,6 +1,6 @@
 # ACTA OPS STATUS
 
-_Last updated: 2026-09-20 (Claude, ACTA Relationship Engine preview at `/lab`: shipped, visual-strength pass, signal-to-noise refinement, and a Watch Mode desk-companion exploration — all per Ops follow-ups, see PR #1 for detail)_
+_Last updated: 2026-09-20 (Claude, ACTA Relationship Engine preview at `/lab`: shipped, visual-strength pass, signal-to-noise refinement, Watch Mode exploration, and a Desk/Watch Mode prototype pass (next-3-prints, human-signal stub, live/sample labeling) — all per Ops follow-ups, see PR #1 for detail)_
 
 ## North Star
 Keep the trader at the desk. ACTA should quickly answer **WHAT / WHY / NEXT** while preserving user choice and source transparency.
@@ -66,6 +66,21 @@ Built per Ops's "build an ACTA Relationship Engine preview" directive, as a smal
   - **A dedicated countdown-to-next-event block** — not duplicated here on purpose: the existing `NextPrint` bar in `Shell` (visible at the top of every page, including `/lab` already) already does this live, so Watch Mode doesn't need its own copy.
   - Genuine second-monitor typography/contrast testing on a real external display — only checked in a standard browser viewport so far.
 - Re-verified: `npm run typecheck` and `npm run build` both clean; screenshotted Explore mode (unchanged), Watch Mode's first frame, an auto-advanced frame after one 9s tick, and the paused/"Resume" state in a headless browser.
+
+**Update 2026-09-20 — "Desk / Watch Mode" prototype (Ops directive: "ACTA earns a monitor")**: extended Watch Mode (still `impact-map.tsx` only) with the specific ingredients asked for, each labeled honestly:
+
+**What's real:**
+- **"Next 3 prints"** — genuinely live, pulled straight from `calendar.ts`'s `upcomingFrom()` (the same data `NextPrint` and the calendar page already use), tagged `LIVE DATA` inline on the page, not just in the footer.
+- **Persistent market state** — already present and live: the `FuturesBar`/`TapeStrip`/`NextPrint` bars in `Shell` sit above `/lab` on every load. Watch Mode doesn't duplicate these; it inherits them, same as every other page.
+- **Compact relationship view with hover/click depth** — the existing diagram, already de-emphasized-by-default with detail on hover/click (from the prior refinement pass).
+
+**What's mocked, and now labeled in-context (not just in the footer)**:
+- The relationship graph and every WHAT/WHY line — tagged `RELATIONSHIP DATA: SAMPLE` directly in the Watch Mode header, in addition to the existing Provenance paragraph.
+- **"Human Signal"** — a `PROTOTYPE STUB`-tagged block. Deliberately **does not name or link any specific creator, channel, or stream** (nothing in this codebase has a real relationship with one, and inventing one would be a fabricated endorsement). Instead it links to generic YouTube/X search results scoped to the currently-focused event or node, exactly like the existing search page's own YouTube-search pattern (`search.tsx`). A "Pin here" stub button shows a pinned label and is explicit that video embedding isn't wired up yet — this is the "stub is fine if platform integration is premature" ask, taken literally.
+
+**Deliberately not touched, to keep this one prototype and not a platform decision**: no broker execution/recommendation logic (none exists or was added), no new paid vendor (only public search-URL patterns already used elsewhere in the app), no new route (still `/lab`, still unlinked from nav).
+
+**Next smallest validation step** (not started, for Ops/Ryan to weigh in on before any of it is built): get real trader feedback on whether the *Next 3 Prints* + compact relationship view + Human-Signal-as-search-links is actually the right ingredient list for "worth dedicating a monitor to" — versus, say, trading it for a real (even if minimal) live embed of one specific, rights-cleared source. That's a product decision, not an engineering one, and the honest "stub" framing here is meant to make that decision visible rather than pre-empt it.
 
 ## Launch Polish — After Build Gate
 - [x] Restore intended iridescent ACTA typography treatment — done 2026-09-18 (Claude), refined against the canonical reference (comment `5724696603`): dropped the gold/cream anchor entirely (spec explicitly says "not metallic gold") and now cycle through lavender → pink → peach → pale green → cyan, evenly spaced, same `.foil` animation mechanism. Visually verified frame-by-frame in a headless browser — five frames each showing a distinct hue from the spec. One CSS rule, no layout change. **Open question**: the spec also says this should be "strongest on... the hero headline," but nothing in the app is currently an unambiguous marketing hero headline — the only large display text besides the ACTA lockup is functional (e.g. the live session name "ASIA"/"LONDON"/"NEW YORK", or a book page's `<h1>` like "NQ / MNQ"). Applying an animated gradient to a live status indicator risks hurting legibility of something functional, which the spec itself guards against ("body/interface copy remains highly readable"). Holding off extending `.foil` anywhere else until you point to the specific element meant by "hero headline."

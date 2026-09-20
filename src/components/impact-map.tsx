@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { EVENTS, type CalEvent } from "@/lib/calendar";
+import { EVENTS, upcomingFrom, type CalEvent } from "@/lib/calendar";
 import { IMPACT_GRAPHS, type ImpactEdge, type ImpactGraph, type ImpactNode, type ImpactNodeKind } from "@/lib/impact-map-data";
 import { cn } from "@/lib/utils";
 
@@ -81,6 +81,7 @@ export function ImpactMap() {
   const [mode, setMode] = useState<ViewMode>("explore");
   const [watchStep, setWatchStep] = useState(0);
   const [watchPaused, setWatchPaused] = useState(false);
+  const [pinned, setPinned] = useState<{ label: string; href: string } | null>(null);
 
   const sourceEvent = findGraphSourceEvent(graph);
   const today = isoToday();
@@ -178,6 +179,15 @@ export function ImpactMap() {
 
   const panelAccent = selectedNode ? KIND_ACCENT[selectedNode.kind] : EVENT_ACCENT;
   const watching = mode === "watch";
+
+  // Real, live calendar data — not part of the sample relationship graph.
+  const next3Prints = useMemo(() => upcomingFrom(today, 3), [today]);
+
+  // "Human Signal" stays honest by linking to generic platform search, not naming or
+  // attributing any specific creator/channel this app has no relationship with.
+  const humanSignalQuery = selectedNode?.label ?? sourceEvent?.title ?? graph.eventTitle;
+  const youtubeSearchHref = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${humanSignalQuery} market reaction`)}`;
+  const xSearchHref = `https://x.com/search?q=${encodeURIComponent(humanSignalQuery)}&f=live`;
 
   const diagram = (
     <div className="border-line bg-surface relative overflow-hidden rounded-2xl border">
@@ -318,8 +328,13 @@ export function ImpactMap() {
       }}
     >
       {watching ? (
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-muted text-[10px] tracking-[0.22em] uppercase">Watch mode · ambient walkthrough</p>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <p className="text-muted text-[10px] tracking-[0.22em] uppercase">Watch mode · ambient walkthrough</p>
+            <span className="border-line text-muted rounded-full border px-1.5 py-0.5 text-[8px] tracking-[0.14em] uppercase">
+              Relationship data: sample
+            </span>
+          </div>
           {watchPaused ? (
             <button
               type="button"
@@ -387,6 +402,66 @@ export function ImpactMap() {
             )}
           </p>
         </>
+      ) : null}
+
+      {watching ? (
+        <div className="border-line mt-6 grid gap-4 border-t pt-6 sm:grid-cols-2">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="border-fg/30 text-fg rounded-full border px-1.5 py-0.5 text-[8px] tracking-[0.14em] uppercase">
+                Live data
+              </span>
+              <p className="text-muted text-[10px] tracking-[0.2em] uppercase">Next 3 prints</p>
+            </div>
+            <ul className="mt-2 space-y-1">
+              {next3Prints.map((e) => (
+                <li key={e.title + e.date} className="text-sm">
+                  <span className="text-fg">{e.title}</span>{" "}
+                  <span className="text-muted text-xs">
+                    {e.date}
+                    {e.time ? ` · ${e.time} ET` : ""}
+                  </span>
+                </li>
+              ))}
+              {!next3Prints.length ? <li className="text-muted text-sm">Nothing scheduled ahead right now.</li> : null}
+            </ul>
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="border-line text-muted rounded-full border border-dashed px-1.5 py-0.5 text-[8px] tracking-[0.14em] uppercase">
+                Prototype stub
+              </span>
+              <p className="text-muted text-[10px] tracking-[0.2em] uppercase">Human signal</p>
+            </div>
+            <p className="text-muted mt-2 text-xs leading-relaxed">
+              Generic platform search for "{humanSignalQuery}" — not a curated feed and not attributed to any
+              specific creator or channel.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <a className="pill" href={youtubeSearchHref} target="_blank" rel="noreferrer">
+                YouTube ↗
+              </a>
+              <a className="pill" href={xSearchHref} target="_blank" rel="noreferrer">
+                X ↗
+              </a>
+              <button
+                type="button"
+                className="pill"
+                onClick={() =>
+                  setPinned(pinned ? null : { label: humanSignalQuery, href: youtubeSearchHref })
+                }
+              >
+                {pinned ? "Unpin" : "Pin here"}
+              </button>
+            </div>
+            {pinned ? (
+              <p className="text-muted mt-2 text-xs leading-relaxed">
+                Pinned: <span className="text-fg">{pinned.label}</span> — this prototype can't embed video yet, so
+                it still opens in a new tab.
+              </p>
+            ) : null}
+          </div>
+        </div>
       ) : null}
     </div>
   );
