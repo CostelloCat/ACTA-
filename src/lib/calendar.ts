@@ -531,21 +531,35 @@ export const EVENTS: CalEvent[] = [
 ];
 
 export function eventsOn(iso: string) {
-  return EVENTS.filter((e) => e.date === iso);
+  return EVENTS.filter((e) => e.date === iso).sort((a, b) => eventStamp(a).getTime() - eventStamp(b).getTime());
 }
 
 export function upcomingFrom(iso: string, n = 8) {
-  return EVENTS.filter((e) => e.date >= iso).slice(0, n);
+  return EVENTS.filter((e) => e.date >= iso)
+    .sort((a, b) => eventStamp(a).getTime() - eventStamp(b).getTime())
+    .slice(0, n);
 }
 
 export function eventStamp(e: CalEvent) {
   const [h, m] = (e.time ?? "09:30").split(":").map(Number);
   const [y, mo, d] = e.date.split("-").map(Number);
-  return new Date(y, (mo ?? 1) - 1, d ?? 1, h ?? 9, m ?? 30, 0);
+  const wallClockUtc = Date.UTC(y, (mo ?? 1) - 1, d ?? 1, h ?? 9, m ?? 30, 0);
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    timeZoneName: "shortOffset",
+    year: "numeric",
+  });
+  const offsetLabel = formatter.formatToParts(new Date(wallClockUtc)).find((part) => part.type === "timeZoneName")?.value ?? "GMT-5";
+  const match = offsetLabel.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
+  const sign = match?.[1] === "-" ? -1 : 1;
+  const offsetMinutes = match ? sign * (Number(match[2]) * 60 + Number(match[3] ?? 0)) : -300;
+  return new Date(wallClockUtc - offsetMinutes * 60_000);
 }
 
 export function nextEvent(from = new Date()) {
-  return EVENTS.find((e) => eventStamp(e).getTime() > from.getTime()) ?? null;
+  return [...EVENTS]
+    .sort((a, b) => eventStamp(a).getTime() - eventStamp(b).getTime())
+    .find((e) => eventStamp(e).getTime() > from.getTime()) ?? null;
 }
 
 export function remainingParts(ms: number) {

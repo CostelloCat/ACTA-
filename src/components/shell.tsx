@@ -2,7 +2,6 @@ import { PinNav } from "@/components/pin-nav";
 import { MoverStrip } from "@/components/mover-strip";
 import { FuturesBar } from "@/components/futures-bar";
 import { Mast } from "@/components/mast";
-import { NextPrint } from "@/components/next-print";
 import { SearchBar } from "@/components/search-bar";
 import { TapeStrip } from "@/components/tape-strip";
 
@@ -25,7 +24,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </header>
       <TapeStrip />
       <FuturesBar />
-      <NextPrint />
       <MoverStrip />
       <div className="relative z-10 px-3 py-6 sm:px-5">{children}</div>
       <footer className="relative z-10 mt-10 flex flex-wrap items-end justify-between gap-3 px-4 pb-8">

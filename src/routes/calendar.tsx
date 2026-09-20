@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AskTape } from "@/components/ask-tape";
+import { CatalystRail } from "@/components/catalyst-rail";
 import { Shell } from "@/components/shell";
 import {
   EVENTS, KIND_LABEL, eventsOn, monthGrid, shiftMonth, upcomingFrom,
   type CalEvent, type CalKind,
 } from "@/lib/calendar";
+import { signalFromCalendar } from "@/lib/catalysts";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/calendar")({ component: CalendarPage });
@@ -34,6 +36,7 @@ function CalendarPage() {
   const [asset, setAsset] = useState<(typeof ASSETS)[number]>("All");
   const cells = useMemo(() => monthGrid(year, month), [year, month]);
   const agenda = useMemo(() => upcomingFrom(today, 14).filter((event) => asset === "All" || event.hits.includes(asset)), [asset, today]);
+  const railSignals = useMemo(() => agenda.slice(0, 4).map((event) => signalFromCalendar(event)), [agenda]);
 
   function moveMonth(delta: number) {
     const next = shiftMonth(year, month, delta);
@@ -62,6 +65,16 @@ function CalendarPage() {
             ))}
           </div>
         </header>
+
+        <div className="mt-5">
+          <CatalystRail
+            signals={railSignals}
+            activeId={signalFromCalendar(selectedEvent).id}
+            onSelect={(signal) => signal.calendarEvent && selectEvent(signal.calendarEvent)}
+            eyebrow="Scheduled catalyst rail"
+            title={asset === "All" ? "The next known pressure points" : `What can move ${asset} next`}
+          />
+        </div>
 
         <section className="mt-5 grid gap-4 lg:grid-cols-[1.25fr_.75fr]">
           <div className="overflow-hidden rounded-2xl border border-line bg-black/30">
@@ -109,7 +122,7 @@ function CalendarPage() {
               <p className="text-muted mt-2 text-sm leading-relaxed">{selectedEvent.history}</p>
             </div>
             <div className="mt-5">
-              <AskTape chips={[{ label: `Ask · ${selectedEvent.short}`, prompt: `${selectedEvent.title} on ${selectedEvent.date}${selectedEvent.time ? ` at ${selectedEvent.time} ET` : ""}. Hits ${selectedEvent.hits}. Give me the long case, short case, invalidation, and the first 15-minute reaction to watch.` }]} />
+              <AskTape chips={[{ label: `Ask · ${selectedEvent.short}`, prompt: `${selectedEvent.title} on ${selectedEvent.date}${selectedEvent.time ? ` at ${selectedEvent.time} ET` : ""}. Hits ${selectedEvent.hits}. Explain the bullish sensitivity, bearish sensitivity, what would invalidate each interpretation, and which first-15-minute variables deserve attention. Do not issue a trade call.` }]} />
             </div>
           </aside>
         </section>

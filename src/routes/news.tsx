@@ -1,7 +1,9 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { CatalystBrief, CatalystRail } from "@/components/catalyst-rail";
 import { LiveMosaic } from "@/components/live-mosaic";
 import { Shell } from "@/components/shell";
+import { buildCatalystSignals } from "@/lib/catalysts";
 import { type DeskId, getMosaic } from "@/lib/channels";
 import { getDesk, leadAge } from "@/lib/desk";
 import { DESK_WIRE, outletsOn } from "@/lib/outlets";
@@ -31,6 +33,9 @@ function NewsPage() {
   const wireKey = DESK_WIRE[region] ?? "United States";
   const items = desk.wires[wireKey] ?? desk.national;
   const natives = outletsOn(region);
+  const signals = buildCatalystSignals({ mosaic, news: Object.values(desk.wires).flat() });
+  const [activeSignalId, setActiveSignalId] = useState(() => signals[0]?.id ?? "");
+  const activeSignal = signals.find((signal) => signal.id === activeSignalId) ?? signals[0] ?? null;
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -49,12 +54,46 @@ function NewsPage() {
         />
         <div className="pointer-events-none absolute inset-0 bg-bg/35" />
         <div className="relative mx-auto max-w-6xl px-3 py-6 sm:px-5">
-        <h1 className="text-3xl sm:text-4xl">Global News</h1>
-        <p className="text-muted mt-2 max-w-xl text-sm">
-          Click a country, you get their newsroom. Native language. We don't rewrite it.
-        </p>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-gold text-[11px] tracking-[0.2em] uppercase">Live catalyst desk</p>
+            <h1 className="mt-1 text-3xl sm:text-4xl">Global News</h1>
+          </div>
+          <p className="text-muted max-w-xl text-sm leading-relaxed">
+            Detect the event, verify the source, map the exposure. Native newsrooms remain visible; ACTA does not rewrite them into one approved version.
+          </p>
+        </div>
 
-        <div className="mt-5">
+        <div className="mt-5 grid gap-4 lg:grid-cols-[1.3fr_.7fr]">
+          <CatalystRail
+            signals={signals}
+            activeId={activeSignal?.id}
+            onSelect={(signal) => setActiveSignalId(signal.id)}
+            eyebrow="Live / breaking / next mic"
+            title="The event rail"
+          />
+          <CatalystBrief signal={activeSignal} />
+        </div>
+
+        {activeSignal?.videoId ? (
+          <div className="mt-4 overflow-hidden rounded-2xl border border-line bg-surface">
+            <iframe
+              title={activeSignal.title}
+              src={`https://www.youtube.com/embed/${activeSignal.videoId}?rel=0&modestbranding=1`}
+              className="aspect-video w-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+            <p className="text-muted px-4 py-2 text-[11px] tracking-wide uppercase">Verified live source · {activeSignal.source}</p>
+          </div>
+        ) : null}
+
+        <div className="mt-8 border-t border-line pt-6">
+          <p className="text-muted text-[10px] tracking-[0.22em] uppercase">Source rooms</p>
+          <h2 className="mt-1 text-2xl">Watch the world without losing the source</h2>
+          <p className="text-muted mt-2 max-w-2xl text-sm">Mainstream, native-language, official, and Against the Current desks stay side by side.</p>
+        </div>
+        <div className="mt-4">
           <LiveMosaic rows={mosaic} desk={region} onDesk={setRegion} wires={items} />
         </div>
 

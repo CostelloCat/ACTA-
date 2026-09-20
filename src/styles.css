@@ -155,6 +155,19 @@
   box-shadow: 0 0 28px rgb(216 195 154 / 0.12);
 }
 
+.catalyst-rail {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.025), 0 18px 70px rgb(0 0 0 / 0.22);
+}
+
+.catalyst-axis {
+  background: linear-gradient(180deg, #c9b8ea, #f0c2d8 24%, #f5d4b8 48%, #bfe8c9 72%, #a8dbe0);
+  box-shadow: 0 0 18px rgb(216 195 154 / 0.36);
+}
+
+.catalyst-plate {
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.25);
+}
+
 @keyframes sheen {
   to {
     background-position: 220% 0;

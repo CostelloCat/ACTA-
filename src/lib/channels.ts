@@ -268,7 +268,7 @@ export const getMosaic = createServerFn({ method: "GET" }).handler(async (): Pro
       return {
         ...c,
         videoId,
-        title: highlight?.title ?? c.label,
+        title: live?.videoId ? `${c.label} live` : (highlight?.title ?? c.label),
         thumb: videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : null,
         onAir: Boolean(live?.videoId),
         age: live?.videoId ? "live" : (highlight?.age ?? ""),
