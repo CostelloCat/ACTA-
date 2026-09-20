@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { buildDeskSignals, statusLabel, type CatalystSignal } from "@/lib/catalysts";
+import { getMosaic } from "@/lib/channels";
 import { getDesk } from "@/lib/desk";
 
 export function MoverStrip() {
@@ -13,10 +14,10 @@ export function MoverStrip() {
       const nextNow = new Date();
       setNow(nextNow);
       try {
-        const desk = await getDesk();
+        const [desk, mosaic] = await Promise.all([getDesk(), getMosaic()]);
         if (!alive) return;
         const news = Object.values(desk.wires).flat();
-        setSignal(buildDeskSignals({ news, now: nextNow })[0] ?? null);
+        setSignal(buildDeskSignals({ news, mosaic, now: nextNow })[0] ?? null);
       } catch {
         if (alive) setSignal(buildDeskSignals({ now: nextNow })[0] ?? null);
       }

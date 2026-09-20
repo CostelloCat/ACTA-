@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { CatalystBrief, CatalystRail } from "@/components/catalyst-rail";
+import { GlobalFlow } from "@/components/global-flow";
 import { LiveMosaic } from "@/components/live-mosaic";
 import { Shell } from "@/components/shell";
 import { buildCatalystSignals } from "@/lib/catalysts";
@@ -53,7 +53,7 @@ function NewsPage() {
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         />
         <div className="pointer-events-none absolute inset-0 bg-bg/35" />
-        <div className="relative mx-auto max-w-6xl px-3 py-6 sm:px-5">
+        <div className="relative mx-auto max-w-7xl px-3 py-6 sm:px-5">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-gold text-[11px] tracking-[0.2em] uppercase">Live catalyst desk</p>
@@ -64,15 +64,13 @@ function NewsPage() {
           </p>
         </div>
 
-        <div className="mt-5 grid gap-4 lg:grid-cols-[1.3fr_.7fr]">
-          <CatalystRail
+        <div className="mt-5">
+          <GlobalFlow
             signals={signals}
-            activeId={activeSignal?.id}
-            onSelect={(signal) => setActiveSignalId(signal.id)}
-            eyebrow="Live / breaking / next mic"
-            title="The event rail"
+            activeSignal={activeSignal}
+            onSignal={(signal) => setActiveSignalId(signal.id)}
+            quotes={desk.quotes}
           />
-          <CatalystBrief signal={activeSignal} />
         </div>
 
         {activeSignal?.videoId ? (
@@ -84,7 +82,9 @@ function NewsPage() {
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
-            <p className="text-muted px-4 py-2 text-[11px] tracking-wide uppercase">Verified live source · {activeSignal.source}</p>
+            <p className="text-muted px-4 py-2 text-[11px] tracking-wide uppercase">
+              {activeSignal.verified ? "Primary source · live" : "Discovered live feed · verify subject and claims"} · {activeSignal.source}
+            </p>
           </div>
         ) : null}
 

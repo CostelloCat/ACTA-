@@ -34,6 +34,7 @@ export type MosaicRow = Channel & {
   title: string;
   onAir: boolean;
   age: string;
+  provenance?: "official" | "publisher" | "discovered";
 };
 
 export const MAIN_TABS: { id: DeskId; label: string }[] = [
@@ -68,7 +69,10 @@ export const CHANNELS: Channel[] = [
   { query: "NBC News live", label: "NBC", desk: "us", lane: "main", channelId: "UCeY0bbntWzzVIaj2z3QigXg" },
   { query: "MSNBC live", label: "MSNBC", desk: "us", lane: "main", channelId: "UCaXkIU1QctMy5gCvkHMAW_Q" },
   { query: "CNBC live", label: "CNBC", desk: "us", lane: "main", channelId: "UCrp_UI8XtuYfpiqluWLD7Lw" },
-  { query: "DJT live White House", label: "DJT LIVE", desk: "live", lane: "main" },
+  { query: "Donald Trump live", label: "DJT LIVE", desk: "live", lane: "main" },
+  { query: "Sam Altman live", label: "SAM ALTMAN LIVE", desk: "live", lane: "main" },
+  { query: "Elon Musk live", label: "ELON LIVE", desk: "live", lane: "main" },
+  { query: "Jensen Huang live", label: "JENSEN LIVE", desk: "live", lane: "main" },
   { query: "White House live", label: "White House", desk: "live", lane: "main", channelId: "UCYxRlFDqcWM4y7FfpiAN3KQ" },
   { query: "Sky News live", label: "Sky News", desk: "europe", lane: "main", channelId: "UCoMdktPbSTixAyNGwb-UYkQ" },
   { query: "DW News live", label: "DW", desk: "europe", lane: "main", channelId: "UCknLrEdhRCp1aegoMqRaCZg" },
@@ -159,7 +163,17 @@ export function withinDay(age: string) {
 
 const mosaicCache: { at: number; rows: MosaicRow[] } = { at: 0, rows: [] };
 
-type Clip = { videoId: string; title: string; age: string };
+type Clip = { videoId: string; title: string; age: string; live?: boolean };
+
+function textContent(value: unknown): string {
+  if (!value || typeof value !== "object") return "";
+  const object = value as Record<string, unknown>;
+  if (typeof object.simpleText === "string") return object.simpleText;
+  if (!Array.isArray(object.runs)) return "";
+  return object.runs
+    .map((run) => (run && typeof run === "object" && typeof (run as Record<string, unknown>).text === "string" ? (run as Record<string, unknown>).text : ""))
+    .join("");
+}
 
 function collectLockups(node: unknown, out: Clip[], seen: Set<string>) {
   if (!node || typeof node !== "object") return;
@@ -168,6 +182,18 @@ function collectLockups(node: unknown, out: Clip[], seen: Set<string>) {
     return;
   }
   const o = node as Record<string, unknown>;
+  const renderer = o.videoRenderer as Record<string, unknown> | undefined;
+  if (renderer && typeof renderer.videoId === "string" && renderer.videoId.length === 11) {
+    const id = renderer.videoId;
+    if (!seen.has(id)) {
+      seen.add(id);
+      const title = textContent(renderer.title);
+      const age = [textContent(renderer.viewCountText), textContent(renderer.publishedTimeText)].filter(Boolean).join(" · ");
+      const badges = JSON.stringify(renderer.badges ?? "");
+      const live = /watching|live now/i.test(age) || /LIVE|BADGE_STYLE_TYPE_LIVE_NOW/i.test(badges);
+      out.push({ videoId: id, title, age: live && !age ? "live now" : age, live });
+    }
+  }
   const lockup = o.lockupViewModel as Record<string, unknown> | undefined;
   if (lockup && typeof lockup.contentId === "string" && lockup.contentId.length === 11) {
     const id = lockup.contentId;
@@ -178,10 +204,66 @@ function collectLockups(node: unknown, out: Clip[], seen: Set<string>) {
         | undefined;
       const title = ((meta?.title as Record<string, unknown> | undefined)?.content as string | undefined) ?? "";
       const age = clipAge(meta);
-      out.push({ videoId: id, title, age });
+      out.push({ videoId: id, title, age, live: /watching|live now/i.test(age) });
     }
   }
   for (const v of Object.values(o)) collectLockups(v, out, seen);
+}
+
+function initialDataFromHtml(html: string) {
+  const markers = ["var ytInitialData =", 'window["ytInitialData"] ='];
+  for (const marker of markers) {
+    const markerIndex = html.indexOf(marker);
+    if (markerIndex < 0) continue;
+    const start = html.indexOf("{", markerIndex + marker.length);
+    if (start < 0) continue;
+    let depth = 0;
+    let quoted = false;
+    let escaped = false;
+    for (let index = start; index < html.length; index += 1) {
+      const char = html[index];
+      if (quoted) {
+        if (escaped) escaped = false;
+        else if (char === "\\") escaped = true;
+        else if (char === '"') quoted = false;
+        continue;
+      }
+      if (char === '"') quoted = true;
+      else if (char === "{") depth += 1;
+      else if (char === "}") {
+        depth -= 1;
+        if (depth === 0) {
+          try {
+            return JSON.parse(html.slice(start, index + 1)) as unknown;
+          } catch {
+            break;
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
+async function discoveredLive(query: string): Promise<Clip | null> {
+  try {
+    const params = new URLSearchParams({ search_query: query, sp: "EgJAAQ%3D%3D" });
+    const res = await fetch(`https://www.youtube.com/results?${params.toString()}`, {
+      headers: {
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        "accept-language": "en-US,en;q=0.9",
+      },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    const initialData = initialDataFromHtml(await res.text());
+    if (!initialData) return null;
+    const clips: Clip[] = [];
+    collectLockups(initialData, clips, new Set());
+    return clips.find((clip) => clip.live) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 function clipAge(meta: Record<string, unknown> | undefined) {
@@ -256,7 +338,16 @@ export const getMosaic = createServerFn({ method: "GET" }).handler(async (): Pro
   const rows = await Promise.all(
     CHANNELS.map(async (c) => {
       if (!c.channelId) {
-        return { ...c, videoId: null, title: c.label, thumb: null, onAir: false, age: "" };
+        const live = c.desk === "live" ? await discoveredLive(c.query) : null;
+        return {
+          ...c,
+          videoId: live?.videoId ?? null,
+          title: live?.title ?? c.label,
+          thumb: live ? `https://i.ytimg.com/vi/${live.videoId}/hqdefault.jpg` : null,
+          onAir: Boolean(live),
+          age: live?.age ?? "",
+          provenance: live ? ("discovered" as const) : undefined,
+        };
       }
       const wantLive = c.lane === "main";
       const [live, clips] = await Promise.all([
@@ -272,6 +363,7 @@ export const getMosaic = createServerFn({ method: "GET" }).handler(async (): Pro
         thumb: videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : null,
         onAir: Boolean(live?.videoId),
         age: live?.videoId ? "live" : (highlight?.age ?? ""),
+        provenance: /white house|federal reserve|house floor|c-span/i.test(`${c.label} ${c.query}`) ? ("official" as const) : ("publisher" as const),
       };
     }),
   );

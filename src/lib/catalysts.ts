@@ -128,7 +128,7 @@ function liveSignals(mosaic: MosaicRow[]) {
   return mosaic
     .filter((row) => row.onAir && row.videoId)
     .map((row): CatalystSignal | null => {
-      const text = `${row.label} ${row.title} ${row.query}`;
+      const text = row.provenance === "discovered" ? row.title : `${row.label} ${row.title} ${row.query}`;
       const watch = watchFor(text);
       const officialDesk = /white house|federal reserve|house floor|c-span/i.test(text);
       if (!watch && !officialDesk) return null;
@@ -136,14 +136,14 @@ function liveSignals(mosaic: MosaicRow[]) {
         id: `live-${row.videoId}`,
         actor: watch?.label ?? row.label.toUpperCase(),
         status: "live",
-        title: `${row.label} is live`,
-        summary: row.title && row.title !== row.label ? row.title : "Verified live source on the ACTA desk.",
+        title: row.provenance === "discovered" ? row.title : `${row.label} is live`,
+        summary: row.title && row.title !== row.label ? row.title : "Live source on the ACTA desk.",
         mechanism: watch?.mechanism ?? "Official remarks and policy headlines",
         hits: watch?.hits ?? "NQ · ES · DXY",
-        source: row.label,
+        source: row.provenance === "discovered" ? `${row.label} · discovered feed` : row.label,
         href: `https://www.youtube.com/watch?v=${row.videoId}`,
         videoId: row.videoId ?? undefined,
-        verified: true,
+        verified: row.provenance === "official",
       };
     })
     .filter((signal): signal is CatalystSignal => Boolean(signal));
@@ -180,6 +180,37 @@ function breakingSignals(news: NewsItem[], now: Date) {
   return signals;
 }
 
+function monitoringSignals(news: NewsItem[], now: Date, excludedTitles: Set<string>) {
+  const seen = new Set<string>();
+  const signals: CatalystSignal[] = [];
+  for (const item of news) {
+    const at = publishedAt(item);
+    if (at === null || now.getTime() - at > 6 * 60 * 60 * 1000) continue;
+    if (excludedTitles.has(item.title.toLowerCase())) continue;
+    const watch = watchFor(item.title);
+    if (!watch && item.kind !== "OIL" && item.kind !== "GEO") continue;
+    const actor = watch?.label ?? (item.kind === "OIL" ? "ENERGY" : "GEO");
+    const key = `${actor}-${item.title.toLowerCase().slice(0, 80)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    signals.push({
+      id: `monitor-${signals.length}-${at}`,
+      actor,
+      status: "monitoring",
+      title: item.title,
+      summary: `Recent source-linked coverage from ${item.source}. ACTA is monitoring the transmission path without labeling it breaking.`,
+      mechanism: watch?.mechanism ?? (item.kind === "OIL" ? "Supply, transport, inflation and margin pressure" : "Geopolitics, policy response and cross-asset risk"),
+      hits: watch?.hits ?? kindHits(item.kind),
+      source: item.source,
+      href: item.link,
+      at,
+      verified: true,
+    });
+    if (signals.length >= 3) break;
+  }
+  return signals;
+}
+
 function kindHits(kind: NewsItem["kind"]) {
   if (kind === "OIL") return "WTI · BRENT · energy names";
   if (kind === "RATES" || kind === "INFLATION") return "NQ · ES · GOLD · DXY";
@@ -201,8 +232,10 @@ export function buildCatalystSignals({
 }) {
   const live = liveSignals(mosaic);
   const breaking = breakingSignals(news, now);
+  const breakingTitles = new Set(breaking.map((signal) => signal.title.toLowerCase()));
+  const monitoring = monitoringSignals(news, now, breakingTitles);
   const nextMic = scheduledCatalysts(now, 3, true);
-  return [...live, ...breaking, ...nextMic].slice(0, limit);
+  return [...live, ...breaking, ...monitoring, ...nextMic].slice(0, limit);
 }
 
 export function buildDeskSignals({
@@ -220,9 +253,9 @@ export function buildDeskSignals({
 }
 
 export function statusLabel(signal: CatalystSignal, now = new Date()) {
-  if (signal.status === "live") return "LIVE · VERIFIED";
+  if (signal.status === "live") return signal.verified ? "LIVE · PRIMARY" : "LIVE FEED · VERIFY";
   if (signal.status === "breaking") return "BREAKING · SOURCE LINKED";
-  if (signal.status === "monitoring") return "WINDOW OPEN · VERIFYING";
+  if (signal.status === "monitoring") return signal.verified ? "MONITORING · SOURCE LINKED" : "WINDOW OPEN · VERIFYING";
   if (!signal.at) return "MONITORING";
   const ms = signal.at - now.getTime();
   if (ms <= 0) return "DUE NOW";

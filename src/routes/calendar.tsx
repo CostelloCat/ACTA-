@@ -66,16 +66,6 @@ function CalendarPage() {
           </div>
         </header>
 
-        <div className="mt-5">
-          <CatalystRail
-            signals={railSignals}
-            activeId={signalFromCalendar(selectedEvent).id}
-            onSelect={(signal) => signal.calendarEvent && selectEvent(signal.calendarEvent)}
-            eyebrow="Scheduled catalyst rail"
-            title={asset === "All" ? "The next known pressure points" : `What can move ${asset} next`}
-          />
-        </div>
-
         <section className="mt-5 grid gap-4 lg:grid-cols-[1.25fr_.75fr]">
           <div className="overflow-hidden rounded-2xl border border-line bg-black/30">
             <div className="flex items-center justify-between border-b border-line px-3 py-2.5">
@@ -126,6 +116,16 @@ function CalendarPage() {
             </div>
           </aside>
         </section>
+
+        <div className="mt-6">
+          <CatalystRail
+            signals={railSignals}
+            activeId={signalFromCalendar(selectedEvent).id}
+            onSelect={(signal) => signal.calendarEvent && selectEvent(signal.calendarEvent)}
+            eyebrow="Scheduled catalyst rail"
+            title={asset === "All" ? "The next known pressure points" : `What can move ${asset} next`}
+          />
+        </div>
 
         <section className="mt-6">
           <div className="mb-3 flex items-center justify-between gap-3">
