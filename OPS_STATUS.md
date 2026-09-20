@@ -1,6 +1,6 @@
 # ACTA OPS STATUS
 
-_Last updated: 2026-09-20 (Claude, ACTA Relationship Engine preview at `/lab`: Desk/Watch Mode pass, a proposal-only Crowd Context write-up, then a first tangible Crowd Context build (live Attention + labeled sample/demo-logic blocks) — see PR #1 for detail)_
+_Last updated: 2026-09-20 (Claude, ACTA Relationship Engine preview at `/lab` through the first tangible Crowd Context build, plus a logged-only Distribution & Monetization architecture direction — see PR #1 for detail)_
 
 ## North Star
 Keep the trader at the desk. ACTA should quickly answer **WHAT / WHY / NEXT** while preserving user choice and source transparency.
@@ -133,6 +133,20 @@ Re-verified: `npm run typecheck` and `npm run build` both clean; screenshotted t
 **Lean architecture recommendation**: (1) sequence this after real accounts exist — a stored key has to be scoped to a signed-in user, so this is downstream of the Desk Profile/auth work already audited, not a parallel track; (2) ship one OpenAI-compatible BYO-key path first (covers OpenAI + xAI + compatible endpoints); (3) keep the current ACTA-hosted `askTape` as the permanent, always-on default — BYO-key is additive, never a wall in front of the free experience, per "ACTA should not force one AI provider" (and per not gating the core product behind user setup).
 
 No code changed for this item — discovery only, per Ops's instruction.
+
+## Distribution & Monetization Architecture — founder-approved direction, not yet scoped for build (2026-09-20)
+
+Logged per Ops's explicit framing: "product architecture direction, not an immediate build request unless Ops later scopes it." No code changed.
+
+**Distribution**: web stays the primary product/source of truth. Desktop, when it happens, is one cross-platform client (not separate Mac/Windows codebases) — Tauri wrapping the existing web app is the preferred direction to evaluate. Same account/subscription across browser, Mac, Windows. Direct distribution first; app stores only if they materially help acquisition later. Mobile is a later companion, not current priority.
+
+**Monetization**: Free + Pro entitlement model. Founder is considering ACTA Pro around $15/month, but price must never be hard-coded into product logic — entitlements need to support testing price points, annual plans, trials, grandfathering, and feature gating without an app rebuild. Checkout/billing stays web-centered so account ownership, upgrades, analytics, and customer data stay centralized (not fragmented across app-store billing systems).
+
+**Potential Pro packaging surface** (naming what already exists in this repo/PR, not proposing anything new): Watch/Desk Mode, deeper WHAT/WHY/NEXT, Relationship Engine depth, Human Signal/Conviction layer, saved layouts/multiple desks, pinned media/context, priority alerts, personalized relevance. Notably, nearly every item on that list is something this PR has already prototyped at `/lab` — worth flagging that the Relationship Engine/Watch Mode work has organically become the shape of the future Pro tier, not just a calendar feature.
+
+**Guardrails carried forward, not yet acted on**: don't add desktop complexity before the web product proves retention/value; don't fork behavior between Mac and Windows; avoid store-dependent billing without a specific strategic reason; keep recurring infra cost lean. An entitlements model (`user` → `plan` → `feature flags`) doesn't exist in the schema yet — `ENGINEERING_AUDIT_001.md`'s Desk Profile tables (§D) would be the natural place to eventually add a `plan`/`entitlements` column once auth is real, but that's a future note, not a task opened by this comment.
+
+**Status**: logged, not scoped, not started. No engineering task is open against this until Ops scopes one explicitly.
 
 ## Later / V2
 - [ ] Global News redesign — **2026-09-19 note (Ops relay)**: founder supplied a second visual reference (branching/converging data-flow on a dark field), explicitly logged as **future inspiration, not a current build instruction**. Possible fit if ever built: a news event/source as the center node, branches to affected markets/sectors/instruments/regions, provenance always visible, and a clear visual distinction between direct factual linkage vs. an inferred/AI-generated relationship — in service of ACTA's "Against the Current" principle (surfacing source diversity/cross-border perspective rather than hiding it behind one feed), never decorative. Same design family as the Flow-map/Influence-Map item below and the shipped `/lab` preview; should be designed together with it, not separately. Not scoped or started.
