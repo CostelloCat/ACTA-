@@ -248,42 +248,145 @@ export const IMPACT_GRAPHS: ImpactGraph[] = [
   },
 ];
 
-export type CrowdNarrative = {
-  label: string;
-  share: number;
-  note: string;
-};
+export type RailAttentionTrend = "rising" | "cooling" | "split";
 
-export type CrowdContext = {
-  /** Hand-authored, illustrative framings of public discussion — not derived from any live post or feed. */
-  narratives: CrowdNarrative[];
-  /** A single illustrative sentence, not computed from real price or narrative data. */
-  divergenceNote: string;
+export type RailSource = {
+  id: string;
+  /** A generic category, never a specific real account/handle/creator name. */
+  category: string;
+  claim: string;
+  timestamp: string;
+  /** Illustrative distance from the tape, 0 (in-phase) to 1 (diverging). Not computed from any real price feed. */
+  divergence: number;
+  attentionTrend: RailAttentionTrend;
+  /** Illustrative plate size, 0 to 1. */
+  attentionSize: number;
+  /** Up to 3 illustrative one-line claims shown on click — sample, not real posts. */
+  sampleClaims: string[];
 };
 
 /**
- * SAMPLE / PROTOTYPE data for the Conviction / Crowd Context exploration. Unlike the
- * `IMPACT_GRAPHS` relationship data (which is at least grounded in the real `markets.ts` prose),
- * these narrative splits are illustrative placeholders standing in for a real aggregation ACTA
- * doesn't have the infrastructure to measure yet — see OPS_STATUS.md for what that would take.
+ * SAMPLE / PROTOTYPE data for "The Rail" — the Conviction/Crowd Context visual. Every field here
+ * is hand-authored and illustrative, standing in for a real aggregation ACTA doesn't have the
+ * infrastructure (or licensing) to measure yet — see OPS_STATUS.md for what that would take.
+ * Categories are deliberately generic (desk/thread/note types, not named accounts) so nothing
+ * here reads as a real, specific creator's endorsement or claim.
  */
-export const CROWD_CONTEXT: Record<string, CrowdContext> = {
-  cpi: {
-    narratives: [
-      { label: "Inflation cooling, Fed has room to ease", share: 45, note: "Reads the print as confirming disinflation continues." },
-      { label: "Core still sticky, hawkish risk stays", share: 35, note: "Focuses on services/shelter components staying firm." },
-      { label: "One print is noise, wait for the trend", share: 20, note: "Discounts the single release either direction." },
-    ],
-    divergenceNote:
-      "Demo logic: price sometimes front-runs the CPI print itself (positioning into 8:30) and then reverses once the dominant narrative above catches up — not measured here.",
-  },
-  fomc: {
-    narratives: [
-      { label: "Dots confirm the cutting path", share: 40, note: "Reads the SEP as validating an easing cycle already priced." },
-      { label: "Powell sounds more hawkish than the dots", share: 38, note: "Weighs presser tone over the projections themselves." },
-      { label: "Decision is a non-event, watch the next SEP", share: 22, note: "Treats a non-SEP meeting as low-signal." },
-    ],
-    divergenceNote:
-      "Demo logic: the market's first reaction to the 14:00 statement often diverges from where it settles after the 14:30 presser — not measured here.",
-  },
+export const RAIL_SOURCES: Record<string, RailSource[]> = {
+  cpi: [
+    {
+      id: "cpi-rates-desks",
+      category: "Rates-desk chatter",
+      claim: "Framing core CPI as confirmation the disinflation trend holds.",
+      timestamp: "~1h ago",
+      divergence: 0.15,
+      attentionTrend: "rising",
+      attentionSize: 0.9,
+      sampleClaims: [
+        "Core in-line keeps the cutting path alive.",
+        "Watching shelter components for the real story.",
+        "Fed doesn't need a hot print to stay patient.",
+      ],
+    },
+    {
+      id: "cpi-options-flow",
+      category: "Options-flow chatter",
+      claim: "Elevated gamma into the print; expecting a fast fade either direction.",
+      timestamp: "~40m ago",
+      divergence: 0.55,
+      attentionTrend: "cooling",
+      attentionSize: 0.6,
+      sampleClaims: [
+        "Vol crush likely regardless of the number.",
+        "Dealers pinned near round strikes into the open.",
+        "Fade the first five minutes was the working plan.",
+      ],
+    },
+    {
+      id: "cpi-macro-threads",
+      category: "Macro threads",
+      claim: "Split between 'cooling confirmed' and 'sticky services' camps.",
+      timestamp: "~2h ago",
+      divergence: 0.7,
+      attentionTrend: "split",
+      attentionSize: 0.8,
+      sampleClaims: [
+        "Team transitory: shelter lags, ignore it.",
+        "Team sticky: services ex-shelter still running hot.",
+        "Neither camp is budging pre-print.",
+      ],
+    },
+    {
+      id: "cpi-sellside-notes",
+      category: "Sell-side notes",
+      claim: "Base case is an in-line print, keeping September odds anchored.",
+      timestamp: "~3h ago",
+      divergence: 0.25,
+      attentionTrend: "cooling",
+      attentionSize: 0.5,
+      sampleClaims: [
+        "No change to year-end cut count.",
+        "In-line print is a non-event for the desk.",
+        "Watching the dollar reaction more than the number.",
+      ],
+    },
+  ],
+  fomc: [
+    {
+      id: "fomc-rates-desks",
+      category: "Rates-desk chatter",
+      claim: "Focused entirely on the dot-plot median, not the 25bp itself.",
+      timestamp: "~1h ago",
+      divergence: 0.2,
+      attentionTrend: "rising",
+      attentionSize: 0.9,
+      sampleClaims: [
+        "Dots matter more than the decision, as always.",
+        "Two cuts already priced for next year.",
+        "Presser tone is the real risk event.",
+      ],
+    },
+    {
+      id: "fomc-options-flow",
+      category: "Options-flow chatter",
+      claim: "Vol bid into 14:00, expecting a crush by 15:00 absent a surprise.",
+      timestamp: "~45m ago",
+      divergence: 0.5,
+      attentionTrend: "cooling",
+      attentionSize: 0.65,
+      sampleClaims: [
+        "Straddle priced for a roughly 1.2% NQ move.",
+        "Dealers likely sell the rip either direction.",
+        "Watching the 2s10s more than NQ itself.",
+      ],
+    },
+    {
+      id: "fomc-macro-threads",
+      category: "Macro threads",
+      claim: "Divided between 'hawkish hold' and 'dovish confirmation' reads.",
+      timestamp: "~2h ago",
+      divergence: 0.65,
+      attentionTrend: "split",
+      attentionSize: 0.75,
+      sampleClaims: [
+        "Powell always sounds hawkish — fade the presser dip.",
+        "This SEP has to acknowledge the labor cooling.",
+        "Neither side is backing off before 14:00.",
+      ],
+    },
+    {
+      id: "fomc-sellside-notes",
+      category: "Sell-side notes",
+      claim: "House view unchanged: base case is a hold with a dovish tilt.",
+      timestamp: "~4h ago",
+      divergence: 0.3,
+      attentionTrend: "cooling",
+      attentionSize: 0.55,
+      sampleClaims: [
+        "No change to our year-end call.",
+        "Presser risk is two-sided — size accordingly.",
+        "Dots matter more than the vote count.",
+      ],
+    },
+  ],
 };

@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { EVENTS, upcomingFrom, type CalEvent } from "@/lib/calendar";
-import { getNameNews, leadAge, type NewsItem } from "@/lib/desk";
+import { getDesk, getNameNews, leadAge, type NewsItem, type Quote } from "@/lib/desk";
 import {
-  CROWD_CONTEXT,
   IMPACT_GRAPHS,
+  RAIL_SOURCES,
   type ImpactEdge,
   type ImpactGraph,
   type ImpactNode,
   type ImpactNodeKind,
+  type RailSource,
 } from "@/lib/impact-map-data";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +32,15 @@ const KIND_ACCENT: Record<ImpactNodeKind, string> = {
 
 const EVENT_ACCENT = "#d8c39a";
 const WATCH_STEP_MS = 9000;
+
+/** The Rail's five semantic colors — the same five stops as the .foil brand gradient (styles.css). */
+const RAIL_ACCENT = {
+  cyan: "#a8dbe0",
+  peach: "#f5d4b8",
+  lavender: "#c9b8ea",
+  pink: "#f0c2d8",
+  paleGreen: "#bfe8c9",
+};
 
 type Selection = { kind: "event" } | { kind: "node"; id: string };
 type ViewMode = "explore" | "watch";
@@ -92,6 +102,9 @@ export function ImpactMap() {
   const [pinned, setPinned] = useState<{ label: string; href: string } | null>(null);
   const [attention, setAttention] = useState<NewsItem[] | null>(null);
   const [attentionLoading, setAttentionLoading] = useState(false);
+  const [nqQuote, setNqQuote] = useState<Quote | null>(null);
+  const [railLeadId, setRailLeadId] = useState<string | null>(null);
+  const [railHoverId, setRailHoverId] = useState<string | null>(null);
 
   const sourceEvent = findGraphSourceEvent(graph);
   const today = isoToday();
@@ -138,6 +151,8 @@ export function ImpactMap() {
   useEffect(() => {
     setWatchStep(0);
     setWatchPaused(false);
+    setRailLeadId(null);
+    setRailHoverId(null);
   }, [graphId, mode]);
 
   const watchSelection: Selection =
@@ -218,8 +233,34 @@ export function ImpactMap() {
     };
   }, [watching, humanSignalQuery]);
 
-  const crowdContext = CROWD_CONTEXT[graph.id] ?? null;
+  // The Rail's one genuinely live element: NQ's real quote, from the same getDesk() feed
+  // FuturesBar/MoverStrip already use. Everything else on the rail (the source plates) is
+  // sample data — this is never conflated with them.
+  useEffect(() => {
+    if (!watching) return;
+    let alive = true;
+    void getDesk().then((payload) => {
+      if (alive) setNqQuote(payload.quotes.find((q) => q.symbol === "NQ=F") ?? null);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [watching]);
+
   const attentionSources = attention ? new Set(attention.map((a) => a.source)).size : 0;
+
+  const railSources = RAIL_SOURCES[graph.id] ?? [];
+  const railFocus = railSources.find((s) => s.id === (railHoverId ?? railLeadId)) ?? null;
+  const tapeDirection =
+    nqQuote == null || nqQuote.price <= 0
+      ? null
+      : nqQuote.changePct > 0.05
+        ? "pushing higher"
+        : nqQuote.changePct < -0.05
+          ? "leaving the room"
+          : "chopping flat";
+  const railConviction = railSources.some((s) => s.attentionTrend === "split") ? "split" : "aligned";
+  const risingCategory = railSources.find((s) => s.attentionTrend === "rising")?.category ?? railSources[0]?.category ?? "quiet";
 
   const diagram = (
     <div className="border-line bg-surface relative overflow-hidden rounded-2xl border">
@@ -498,79 +539,166 @@ export function ImpactMap() {
 
       {watching ? (
         <div className="border-line mt-6 border-t pt-6">
-          <p className="text-muted text-[10px] tracking-[0.2em] uppercase">
-            Crowd context for "{humanSignalQuery}" — context, not advice
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-muted text-[10px] tracking-[0.2em] uppercase">The Rail — context, not advice</p>
+            <span className="border-fg/30 text-fg rounded-full border px-1.5 py-0.5 text-[8px] tracking-[0.14em] uppercase">
+              Live tape
+            </span>
+          </div>
+          <p className="mt-2 text-sm leading-relaxed">
+            <span className="text-muted uppercase tracking-[0.08em] text-xs">Attention</span>{" "}
+            <span className="text-fg">{risingCategory}</span>
+            <span className="text-muted"> · </span>
+            <span className="text-muted uppercase tracking-[0.08em] text-xs">Conviction</span>{" "}
+            <span className="text-fg">{railConviction}</span>
+            <span className="text-muted"> · </span>
+            <span className="text-muted uppercase tracking-[0.08em] text-xs">Tape</span>{" "}
+            <span className="text-fg">
+              {tapeDirection ?? "tape unavailable"}
+              {nqQuote ? ` (${nqQuote.changePct >= 0 ? "+" : ""}${nqQuote.changePct.toFixed(2)}%)` : ""}
+            </span>
           </p>
-          <div className="mt-3 grid gap-4 sm:grid-cols-3">
-            <div>
-              <span className="border-fg/30 text-fg rounded-full border px-1.5 py-0.5 text-[8px] tracking-[0.14em] uppercase">
-                Live data
-              </span>
-              <p className="text-muted mt-1.5 text-[10px] tracking-[0.16em] uppercase">Attention</p>
-              {attentionLoading ? (
-                <p className="text-muted mt-1 text-xs">Checking the live wire…</p>
-              ) : attention && attention.length ? (
+          <p className="text-muted mt-1 text-[11px] leading-relaxed">
+            Attention/Conviction read from the sample plates below (illustrative). Tape is NQ's real live quote.{" "}
+            {attentionLoading
+              ? "Checking the live wire…"
+              : attention
+                ? `Live wire check: ${attention.length} headline${attention.length === 1 ? "" : "s"} on "${humanSignalQuery}" across ${attentionSources} outlet${attentionSources === 1 ? "" : "s"} in the last 2 days.`
+                : null}
+          </p>
+
+          <div
+            className="relative mt-4 h-56"
+            onMouseLeave={() => setRailHoverId(null)}
+          >
+            <div className="border-line absolute inset-y-0 left-1/2 -translate-x-1/2 border-l border-dashed" />
+
+            <div
+              className="border-line bg-raised absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-xl border px-3 py-2 text-center"
+              style={{ boxShadow: `0 0 0 1px ${EVENT_ACCENT}55, 0 0 16px ${EVENT_ACCENT}44` }}
+            >
+              <p className="text-gold text-[9px] tracking-[0.18em] uppercase">NQ · live</p>
+              {nqQuote && nqQuote.price > 0 ? (
                 <>
-                  <p className="mt-1 text-xs leading-relaxed">
-                    <span className="text-fg">{attention.length} headline{attention.length === 1 ? "" : "s"}</span> in
-                    the last 2 days across <span className="text-fg">{attentionSources}</span> outlet
-                    {attentionSources === 1 ? "" : "s"}.
+                  <p className="text-fg mt-0.5 text-sm tabular-nums">
+                    {nqQuote.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                   </p>
-                  <ul className="mt-1.5 space-y-1">
-                    {attention.slice(0, 3).map((item) => (
-                      <li key={item.title}>
-                        <a
-                          href={item.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-fg block text-xs leading-snug no-underline hover:underline"
-                        >
-                          {item.title}
-                        </a>
-                        <span className="text-muted text-[10px] tracking-wide uppercase">
-                          {item.source}
-                          {leadAge(item.published) ? ` · ${leadAge(item.published)}` : ""}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+                  <p className={cn("text-xs tabular-nums", nqQuote.changePct < 0 ? "text-down" : "text-up")}>
+                    {nqQuote.changePct >= 0 ? "+" : ""}
+                    {nqQuote.changePct.toFixed(2)}%
+                  </p>
                 </>
               ) : (
-                <p className="text-muted mt-1 text-xs">No recent wire mentions found.</p>
+                <p className="text-muted mt-0.5 text-xs">{nqQuote ? "quote unavailable" : "loading…"}</p>
               )}
             </div>
 
-            <div>
-              <span className="border-line text-muted rounded-full border border-dashed px-1.5 py-0.5 text-[8px] tracking-[0.14em] uppercase">
-                Sample
-              </span>
-              <p className="text-muted mt-1.5 text-[10px] tracking-[0.16em] uppercase">Agreement / split</p>
-              {crowdContext ? (
-                <ul className="mt-1 space-y-1.5">
-                  {crowdContext.narratives.map((n) => (
-                    <li key={n.label} className="text-xs leading-relaxed">
-                      <span className="text-fg">{n.share}%</span> {n.label}
-                      <span className="text-muted block text-[11px]">{n.note}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-muted mt-1 text-xs">No sample framing for this print yet.</p>
-              )}
-              <p className="text-muted mt-1.5 text-[10px] leading-relaxed">
-                Illustrative sample framing — not derived from real posts or a live consensus measurement.
-              </p>
-            </div>
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full">
+              {railSources.map((s, i) => {
+                const side = i % 2 === 0 ? -1 : 1;
+                const x = 50 + side * (12 + s.divergence * 33);
+                const y = railSources.length > 1 ? 12 + (i / (railSources.length - 1)) * 76 : 50;
+                const connectorColor = s.divergence >= 0.5 ? RAIL_ACCENT.pink : RAIL_ACCENT.paleGreen;
+                const isDimmed = railLeadId !== null && railLeadId !== s.id;
+                return (
+                  <line
+                    key={`line-${s.id}`}
+                    x1={x}
+                    y1={y}
+                    x2={50}
+                    y2={y}
+                    stroke={connectorColor}
+                    strokeWidth={0.4}
+                    opacity={isDimmed ? 0.2 : 0.75}
+                  />
+                );
+              })}
+            </svg>
 
-            <div>
-              <span className="border-line text-muted rounded-full border border-dashed px-1.5 py-0.5 text-[8px] tracking-[0.14em] uppercase">
-                Demo logic
-              </span>
-              <p className="text-muted mt-1.5 text-[10px] tracking-[0.16em] uppercase">Divergence</p>
-              <p className="mt-1 text-xs leading-relaxed">
-                {crowdContext?.divergenceNote ?? "No demo divergence note for this print yet."}
-              </p>
-            </div>
+            {railSources.map((s, i) => {
+              const side = i % 2 === 0 ? -1 : 1;
+              const x = 50 + side * (12 + s.divergence * 33);
+              const y = railSources.length > 1 ? 12 + (i / (railSources.length - 1)) * 76 : 50;
+              const trendColor =
+                s.attentionTrend === "rising" ? RAIL_ACCENT.cyan : s.attentionTrend === "cooling" ? RAIL_ACCENT.peach : RAIL_ACCENT.lavender;
+              const isLead = railLeadId === s.id;
+              const isDimmed = railLeadId !== null && !isLead;
+              const width = 92 + s.attentionSize * 46;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onMouseEnter={() => setRailHoverId(s.id)}
+                  onClick={() => setRailLeadId(isLead ? null : s.id)}
+                  className={cn(
+                    "bg-raised absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-xl border px-2.5 py-1.5 text-left transition-all",
+                    isDimmed && "opacity-35",
+                  )}
+                  style={{
+                    left: `${x}%`,
+                    top: `${y}%`,
+                    width: `${width}px`,
+                    borderColor: isLead ? trendColor : `${trendColor}99`,
+                    boxShadow: isLead ? `0 0 0 1px ${trendColor}77, 0 0 14px ${trendColor}55` : undefined,
+                  }}
+                >
+                  <p className="text-muted text-[9px] tracking-[0.1em] uppercase">{s.category}</p>
+                  <p className="text-fg mt-0.5 text-[11px] leading-tight">{s.claim}</p>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px] tracking-wide uppercase">
+            <span className="text-muted flex items-center gap-1.5">
+              <i className="size-2 shrink-0 rounded-full" style={{ backgroundColor: RAIL_ACCENT.cyan }} /> Attention rising
+            </span>
+            <span className="text-muted flex items-center gap-1.5">
+              <i className="size-2 shrink-0 rounded-full" style={{ backgroundColor: RAIL_ACCENT.peach }} /> Attention cooling
+            </span>
+            <span className="text-muted flex items-center gap-1.5">
+              <i className="size-2 shrink-0 rounded-full" style={{ backgroundColor: RAIL_ACCENT.lavender }} /> Split / disagreement
+            </span>
+            <span className="text-muted flex items-center gap-1.5">
+              <i className="size-2 shrink-0 rounded-full" style={{ backgroundColor: RAIL_ACCENT.pink }} /> Diverging from tape
+            </span>
+            <span className="text-muted flex items-center gap-1.5">
+              <i className="size-2 shrink-0 rounded-full" style={{ backgroundColor: RAIL_ACCENT.paleGreen }} /> In phase with tape
+            </span>
+          </div>
+
+          <div className="border-line mt-3 rounded-xl border p-4">
+            <span className="border-line text-muted rounded-full border border-dashed px-1.5 py-0.5 text-[8px] tracking-[0.14em] uppercase">
+              Sample source
+            </span>
+            {railFocus ? (
+              <>
+                <p className="mt-1.5 text-sm">
+                  {railFocus.category} <span className="text-muted text-xs">· {railFocus.timestamp}</span>
+                </p>
+                <p className="mt-1 text-xs leading-relaxed">
+                  Said: "{railFocus.claim}" / tape now: {tapeDirection ?? "tape unavailable"}.
+                </p>
+                {railLeadId === railFocus.id ? (
+                  <>
+                    <p className="text-muted mt-2 text-[10px] tracking-[0.16em] uppercase">
+                      Last 3 sample claims (not real posts)
+                    </p>
+                    <ul className="mt-1 space-y-1">
+                      {railFocus.sampleClaims.map((c) => (
+                        <li key={c} className="text-xs leading-relaxed">
+                          "{c}"
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : (
+                  <p className="text-muted mt-1.5 text-[10px]">Click the plate to lock it as lead.</p>
+                )}
+              </>
+            ) : (
+              <p className="text-muted mt-1.5 text-xs">Hover or click a plate to expand its source, timestamp, and claim.</p>
+            )}
           </div>
         </div>
       ) : null}
@@ -629,11 +757,11 @@ export function ImpactMap() {
           ACTA calendar
         </Link>
         . "Watch mode" is a first exploration of a second-monitor "desk companion" concept —
-        see the report for what a real version would still need. In its Crowd Context block, only
-        "Attention" is real (a live wire search via the same endpoint `BookNews` already uses
-        elsewhere in ACTA); "Agreement / split" is a hand-authored sample framing and
-        "Divergence" is a static demo-logic sentence — neither is measured from any live feed,
-        and none of it is investment advice.
+        see the report for what a real version would still need. In "The Rail" below, only the
+        NQ price/quote at the center is real (the same live quote feed `FuturesBar` already
+        uses); every source plate — its category, claim, timestamp, and distance from the tape —
+        is a hand-authored sample standing in for a real aggregation ACTA doesn't have the
+        infrastructure to measure yet, and none of it is investment advice.
       </p>
     </div>
   );
