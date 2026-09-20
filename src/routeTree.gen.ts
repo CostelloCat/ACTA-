@@ -16,6 +16,7 @@ import { Route as CryptoRouteImport } from './routes/crypto'
 import { Route as EthRouteImport } from './routes/eth'
 import { Route as FilingsRouteImport } from './routes/filings'
 import { Route as GoldRouteImport } from './routes/gold'
+import { Route as LabRouteImport } from './routes/lab'
 import { Route as Mag7RouteImport } from './routes/mag7'
 import { Route as MoreRouteImport } from './routes/more'
 import { Route as NewsRouteImport } from './routes/news'
@@ -67,6 +68,11 @@ const FilingsRoute = FilingsRouteImport.update({
 const GoldRoute = GoldRouteImport.update({
   id: '/gold',
   path: '/gold',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LabRoute = LabRouteImport.update({
+  id: '/lab',
+  path: '/lab',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Mag7Route = Mag7RouteImport.update({
@@ -163,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/eth': typeof EthRoute
   '/filings': typeof FilingsRoute
   '/gold': typeof GoldRoute
+  '/lab': typeof LabRoute
   '/mag7': typeof Mag7Route
   '/more': typeof MoreRoute
   '/news': typeof NewsRoute
@@ -189,6 +196,7 @@ export interface FileRoutesByTo {
   '/eth': typeof EthRoute
   '/filings': typeof FilingsRoute
   '/gold': typeof GoldRoute
+  '/lab': typeof LabRoute
   '/mag7': typeof Mag7Route
   '/more': typeof MoreRoute
   '/news': typeof NewsRoute
@@ -216,6 +224,7 @@ export interface FileRoutesById {
   '/eth': typeof EthRoute
   '/filings': typeof FilingsRoute
   '/gold': typeof GoldRoute
+  '/lab': typeof LabRoute
   '/mag7': typeof Mag7Route
   '/more': typeof MoreRoute
   '/news': typeof NewsRoute
@@ -244,6 +253,7 @@ export interface FileRouteTypes {
     | '/eth'
     | '/filings'
     | '/gold'
+    | '/lab'
     | '/mag7'
     | '/more'
     | '/news'
@@ -270,6 +280,7 @@ export interface FileRouteTypes {
     | '/eth'
     | '/filings'
     | '/gold'
+    | '/lab'
     | '/mag7'
     | '/more'
     | '/news'
@@ -296,6 +307,7 @@ export interface FileRouteTypes {
     | '/eth'
     | '/filings'
     | '/gold'
+    | '/lab'
     | '/mag7'
     | '/more'
     | '/news'
@@ -323,6 +335,7 @@ export interface RootRouteChildren {
   EthRoute: typeof EthRoute
   FilingsRoute: typeof FilingsRoute
   GoldRoute: typeof GoldRoute
+  LabRoute: typeof LabRoute
   Mag7Route: typeof Mag7Route
   MoreRoute: typeof MoreRoute
   NewsRoute: typeof NewsRoute
@@ -391,6 +404,13 @@ declare module '@tanstack/react-router' {
       path: '/gold'
       fullPath: '/gold'
       preLoaderRoute: typeof GoldRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lab': {
+      id: '/lab'
+      path: '/lab'
+      fullPath: '/lab'
+      preLoaderRoute: typeof LabRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mag7': {
@@ -523,6 +543,7 @@ const rootRouteChildren: RootRouteChildren = {
   EthRoute: EthRoute,
   FilingsRoute: FilingsRoute,
   GoldRoute: GoldRoute,
+  LabRoute: LabRoute,
   Mag7Route: Mag7Route,
   MoreRoute: MoreRoute,
   NewsRoute: NewsRoute,
