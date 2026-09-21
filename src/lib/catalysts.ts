@@ -266,11 +266,13 @@ export function buildCatalystSignals({
   limit?: number;
 }) {
   const live = liveSignals(mosaic);
+  const primaryLive = live.filter((signal) => signal.verified);
+  const discoveredLive = live.filter((signal) => !signal.verified);
   const breaking = breakingSignals(news, now);
   const breakingTitles = new Set(breaking.map((signal) => signal.title.toLowerCase()));
   const monitoring = monitoringSignals(news, now, breakingTitles);
   const nextMic = scheduledCatalysts(now, 3, true);
-  return [...live, ...breaking, ...monitoring, ...nextMic].slice(0, limit);
+  return [...primaryLive, ...breaking, ...monitoring, ...discoveredLive, ...nextMic].slice(0, limit);
 }
 
 export function buildDeskSignals({
@@ -282,13 +284,14 @@ export function buildDeskSignals({
   news?: NewsItem[];
   now?: Date;
 }) {
-  const immediate = [...liveSignals(mosaic), ...breakingSignals(news, now)];
+  const primaryLive = liveSignals(mosaic).filter((signal) => signal.verified);
+  const immediate = [...primaryLive, ...breakingSignals(news, now)];
   if (immediate.length) return immediate;
   return scheduledCatalysts(now, 1, false);
 }
 
 export function statusLabel(signal: CatalystSignal, now = new Date()) {
-  if (signal.status === "live") return signal.verified ? "LIVE · PRIMARY" : "LIVE FEED · VERIFY";
+  if (signal.status === "live") return signal.verified ? "LIVE · PRIMARY" : "LIVE COVERAGE · VERIFY SUBJECT";
   if (signal.status === "breaking") return "BREAKING · SOURCE LINKED";
   if (signal.status === "monitoring") return signal.verified ? "MONITORING · SOURCE LINKED" : "WINDOW OPEN · VERIFYING";
   if (!signal.at) return "MONITORING";

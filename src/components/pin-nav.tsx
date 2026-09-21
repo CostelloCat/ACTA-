@@ -5,10 +5,8 @@ import { cn } from "@/lib/utils";
 
 const CORE = [
   { to: "/", label: "Desk" },
+  { to: "/news", label: "Radar" },
   { to: "/calendar", label: "Calendar" },
-  { to: "/news", label: "News" },
-  { to: "/socials", label: "Crowd" },
-  { to: "/search", label: "Search" },
 ] as const;
 
 export function PinNav() {

@@ -17,8 +17,8 @@ type Hit = {
 };
 
 const PAGES: Hit[] = [
-  { id: "desk", kind: "page", label: "Desk", dek: "Session, bundle, next print", to: "/" },
-  { id: "news", kind: "page", label: "Global News", dek: "Live desks and wires", to: "/news" },
+  { id: "desk", kind: "page", label: "Desk", dek: "Priority catalyst, next risk, tape", to: "/" },
+  { id: "news", kind: "page", label: "Catalyst Radar", dek: "Verified breaking signals and source rooms", to: "/news" },
   { id: "cal", kind: "page", label: "Trading Calendar", dek: "Prints and speeches", to: "/calendar" },
   { id: "socials", kind: "page", label: "Socials", dek: "X, YouTube, TV, Kick", to: "/socials" },
   { id: "crypto", kind: "page", label: "Crypto", dek: "BTC ETH SOL", to: "/crypto" },

@@ -55,10 +55,10 @@ function NewsPage() {
         <div className="pointer-events-none absolute inset-0 bg-bg/35" />
         <div className="relative mx-auto max-w-7xl px-3 py-6 sm:px-5">
         <DataHealth desk={desk} />
-        <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-gold text-[11px] tracking-[0.2em] uppercase">Live catalyst desk</p>
-            <h1 className="mt-1 text-3xl sm:text-4xl">Global News</h1>
+            <p className="text-gold text-[11px] tracking-[0.2em] uppercase">Unscheduled catalyst intelligence</p>
+            <h1 className="mt-1 text-3xl sm:text-4xl">Catalyst Radar</h1>
           </div>
           <p className="text-muted max-w-xl text-sm leading-relaxed">
             Detect the event, verify the source, map the exposure. Native newsrooms remain visible; ACTA does not rewrite them into one approved version.

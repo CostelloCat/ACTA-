@@ -20,9 +20,9 @@ export const PIN_CATALOG: Pin[] = [
 ];
 
 // Keep the persistent rail useful at a glance. The full catalog remains one click away.
-export const DEFAULT_PINS = ["nq", "spx", "gold", "btc"];
+export const DEFAULT_PINS = ["nq", "spx", "gold", "oil"];
 
-const KEY = "acta-desk-pins";
+const KEY = "acta-desk-pins-v2";
 
 export function pinBySlug(slug: string) {
   return PIN_CATALOG.find((p) => p.slug === slug);
