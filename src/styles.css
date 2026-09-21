@@ -1,0 +1,204 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #050506;
+  --color-surface: #0c0c10;
+  --color-raised: #141418;
+  --color-fg: #f2f2f4;
+  --color-muted: #8b8b96;
+  --color-line: #2a2a32;
+  --color-gold: #d8c39a;
+  --color-up: #3dd68c;
+  --color-down: #f07178;
+  --color-rates: #5b8def;
+  --color-inflation: #9b7ed9;
+  --color-oil: #c4a35a;
+  --color-mag7: #3d9a6a;
+  --color-live: #e23d3d;
+  --color-tape: #141418;
+  --font-display: "Fraunces", "Iowan Old Style", Palatino, serif;
+  --font-ui: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --radius-sm: 999px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+}
+
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--color-bg);
+    color: var(--color-fg);
+  }
+
+  body {
+    min-height: 100dvh;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    background: #050506;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    font-family: var(--font-ui);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+.foil {
+  background: linear-gradient(
+    115deg,
+    #c9b8ea 0%,
+    #f0c2d8 20%,
+    #f5d4b8 40%,
+    #bfe8c9 60%,
+    #a8dbe0 80%,
+    #c9b8ea 100%
+  );
+  background-size: 220% 220%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sheen 10s linear infinite;
+}
+
+.floor {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.045) 1px, transparent 1px);
+  background-size: 80px 80px;
+  transform: perspective(700px) rotateX(64deg) scale(1.2);
+  transform-origin: top;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  border-radius: 999px;
+  border: 1px solid var(--color-line);
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  text-decoration: none;
+  color: var(--color-muted);
+  background: transparent;
+}
+
+.pill-on {
+  color: var(--color-fg);
+  background: #1a1a20;
+  border-color: #3a3a44;
+}
+
+.pill-solid {
+  color: #050506;
+  background: #f2f2f4;
+  border-color: #f2f2f4;
+}
+
+.cal-select {
+  appearance: none;
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238b8b96' d='M1.2 1.2L6 6l4.8-4.8'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 2rem;
+}
+
+.mesh-drift {
+  animation: mesh-drift 48s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes mesh-drift {
+  from {
+    transform: scale(1.08) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.12) translate3d(-3%, 2%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .foil {
+    animation: none;
+  }
+}
+
+.tape-host,
+.tape-host .tradingview-widget-container,
+.tape-host .tradingview-widget-container__widget,
+.tape-host iframe {
+  width: 100% !important;
+  height: 72px !important;
+  min-height: 72px !important;
+}
+
+.session-live {
+  box-shadow: 0 0 28px rgb(216 195 154 / 0.12);
+}
+
+.catalyst-rail {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.025), 0 18px 70px rgb(0 0 0 / 0.22);
+}
+
+.catalyst-axis {
+  background: linear-gradient(180deg, #c9b8ea, #f0c2d8 24%, #f5d4b8 48%, #bfe8c9 72%, #a8dbe0);
+  box-shadow: 0 0 18px rgb(216 195 154 / 0.36);
+}
+
+.catalyst-plate {
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.25);
+}
+
+.global-flow {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.035), 0 28px 90px rgb(0 0 0 / 0.34);
+}
+
+.flow-node {
+  min-height: 64px;
+  box-shadow: 0 10px 35px rgb(0 0 0 / 0.38);
+}
+
+@keyframes sheen {
+  to {
+    background-position: 220% 0;
+  }
+}
+
+@keyframes orbit-drift {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.06);
+  }
+}
+
+.orbit-still {
+  animation: orbit-drift 48s ease-in-out alternate infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbit-still {
+    animation: none;
+  }
+}
