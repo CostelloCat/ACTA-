@@ -56,12 +56,23 @@ const KIND_LABEL: Record<FlowKind, string> = {
 };
 
 function uniqueHits(signal: CatalystSignal) {
-  return [...new Set(signal.hits.split("·").map((hit) => hit.trim()).filter(Boolean))].slice(0, 3);
+  return [
+    ...new Set(
+      signal.hits
+        .split("·")
+        .map((hit) => hit.trim())
+        .filter(Boolean),
+    ),
+  ].slice(0, 3);
 }
 
 function transmissionLabel(signal: CatalystSignal) {
-  if (signal.actor === "ENERGY" || /WTI|BRENT|oil|crude/i.test(signal.hits)) return "Supply / route risk";
-  if (signal.actor === "FED" || /rates|FOMC|DXY/i.test(signal.title)) return "Rates / liquidity path";
+  if (signal.actor === "US–CHINA") return "Trade / technology policy";
+  if (signal.actor === "MIDEAST") return "Energy / inflation / risk";
+  if (signal.actor === "ENERGY" || /WTI|BRENT|oil|crude/i.test(signal.hits))
+    return "Supply / route risk";
+  if (signal.actor === "FED" || /rates|FOMC|DXY/i.test(signal.title))
+    return "Rates / liquidity path";
   if (signal.actor === "DJT") return "Policy transmission";
   if (signal.actor === "OPENAI" || signal.actor === "NVDA") return "AI demand / compute";
   if (signal.actor === "ELON") return "Company / risk appetite";
@@ -69,56 +80,164 @@ function transmissionLabel(signal: CatalystSignal) {
 }
 
 function expressionsFor(signal: CatalystSignal) {
+  if (signal.actor === "US–CHINA") {
+    return [
+      {
+        label: "SMH · SOXX / semis",
+        why: "Export controls and chip-access language reach semiconductor revenue, licensing and supply-chain expectations first.",
+      },
+      {
+        label: "KWEB · FXI / China ADRs",
+        why: "China risk assets and CNH help distinguish a real change in bilateral conditions from a ceremonial headline.",
+      },
+      {
+        label: "AAPL · TSLA / industrials",
+        why: "China revenue, sourcing and manufacturing exposure can transmit the policy detail into large U.S. companies.",
+      },
+    ];
+  }
+  if (signal.actor === "MIDEAST") {
+    return [
+      {
+        label: "BNO · USO / crude",
+        why: "Brent versus WTI reveals whether diplomacy or escalation is changing regional supply and shipping risk.",
+      },
+      {
+        label: "XLE / airlines",
+        why: "Energy producers and fuel-sensitive businesses should react in opposite directions if the crude move is economically meaningful.",
+      },
+      {
+        label: "Gold · DXY / NQ",
+        why: "Safe havens, inflation expectations and duration show whether the event has become a cross-asset risk shock.",
+      },
+    ];
+  }
   if (signal.actor === "ENERGY" || /WTI|BRENT|oil|crude/i.test(`${signal.hits} ${signal.title}`)) {
     return [
-      { label: "BNO / USO", why: "Brent- and WTI-linked fund expressions can separate when the shock is regional rather than global." },
-      { label: "XOM · CVX / VLO · MPC", why: "Producers and refiners carry different exposure to crude prices, spreads, and product availability." },
-      { label: "DAL · UAL / transport", why: "Fuel-sensitive businesses can absorb the same oil shock through higher operating costs." },
+      {
+        label: "BNO / USO",
+        why: "Brent- and WTI-linked fund expressions can separate when the shock is regional rather than global.",
+      },
+      {
+        label: "XOM · CVX / VLO · MPC",
+        why: "Producers and refiners carry different exposure to crude prices, spreads, and product availability.",
+      },
+      {
+        label: "DAL · UAL / transport",
+        why: "Fuel-sensitive businesses can absorb the same oil shock through higher operating costs.",
+      },
     ];
   }
   if (signal.actor === "FED" || /NQ.*GOLD|FOMC|rates/i.test(`${signal.hits} ${signal.title}`)) {
     return [
-      { label: "QQQ / duration", why: "Long-duration growth exposure is sensitive to changes in the expected rate path." },
-      { label: "JPM · KRE", why: "Banks respond through the curve, funding expectations, and credit conditions." },
-      { label: "NEM · homebuilders", why: "Gold miners and rate-sensitive housing names express different branches of the same policy shock." },
+      {
+        label: "QQQ / duration",
+        why: "Long-duration growth exposure is sensitive to changes in the expected rate path.",
+      },
+      {
+        label: "JPM · KRE",
+        why: "Banks respond through the curve, funding expectations, and credit conditions.",
+      },
+      {
+        label: "NEM · homebuilders",
+        why: "Gold miners and rate-sensitive housing names express different branches of the same policy shock.",
+      },
     ];
   }
   if (["OPENAI", "NVDA", "AAPL", "MSFT", "GOOGL", "AMZN", "META"].includes(signal.actor)) {
     return [
-      { label: signal.actor === "OPENAI" ? "MSFT · NVDA" : signal.actor, why: "The named company or its closest listed partner is the most direct expression of company-specific news." },
-      { label: "Suppliers / partners", why: "Supply-chain and platform partners show whether the economics extend beyond the headline company." },
-      { label: "Peer breadth / NQ", why: "Peer and index breadth confirm whether the catalyst is becoming a group or market event." },
+      {
+        label: signal.actor === "OPENAI" ? "MSFT · NVDA" : signal.actor,
+        why: "The named company or its closest listed partner is the most direct expression of company-specific news.",
+      },
+      {
+        label: "Suppliers / partners",
+        why: "Supply-chain and platform partners show whether the economics extend beyond the headline company.",
+      },
+      {
+        label: "Peer breadth / NQ",
+        why: "Peer and index breadth confirm whether the catalyst is becoming a group or market event.",
+      },
     ];
   }
   if (signal.actor === "ELON") {
     return [
-      { label: "TSLA", why: "Tesla is the direct company exposure when the remarks concern vehicles, autonomy, or company guidance." },
-      { label: "NVDA / AI names", why: "Compute or xAI remarks can transmit into the wider AI complex." },
-      { label: "NQ breadth", why: "Index breadth shows whether attention is spreading beyond the named company." },
+      {
+        label: "TSLA",
+        why: "Tesla is the direct company exposure when the remarks concern vehicles, autonomy, or company guidance.",
+      },
+      {
+        label: "NVDA / AI names",
+        why: "Compute or xAI remarks can transmit into the wider AI complex.",
+      },
+      {
+        label: "NQ breadth",
+        why: "Index breadth shows whether attention is spreading beyond the named company.",
+      },
     ];
   }
   if (signal.actor === "DJT") {
     return [
-      { label: "Trade-sensitive names", why: "Tariffs and trade policy reach companies through sourcing, pricing, and geographic revenue." },
-      { label: "Defense / energy", why: "Geopolitical and fiscal remarks can reprice sector-specific expectations before the whole index." },
-      { label: "DXY / rate proxies", why: "Dollar and rate reactions help distinguish macro transmission from headline noise." },
+      {
+        label: "Trade-sensitive names",
+        why: "Tariffs and trade policy reach companies through sourcing, pricing, and geographic revenue.",
+      },
+      {
+        label: "Defense / energy",
+        why: "Geopolitical and fiscal remarks can reprice sector-specific expectations before the whole index.",
+      },
+      {
+        label: "DXY / rate proxies",
+        why: "Dollar and rate reactions help distinguish macro transmission from headline noise.",
+      },
     ];
   }
   return [
-    { label: "Sector leaders", why: "Leaders reveal whether the event is moving a real industry group or only a headline." },
-    { label: "Directly exposed names", why: "Company-level exposure separates the actual mechanism from broad index sympathy." },
-    { label: "Index confirmation", why: "Breadth and index response show whether the event has escaped its original pocket." },
+    {
+      label: "Sector leaders",
+      why: "Leaders reveal whether the event is moving a real industry group or only a headline.",
+    },
+    {
+      label: "Directly exposed names",
+      why: "Company-level exposure separates the actual mechanism from broad index sympathy.",
+    },
+    {
+      label: "Index confirmation",
+      why: "Breadth and index response show whether the event has escaped its original pocket.",
+    },
   ];
 }
 
 export function tradeLensFor(signal: CatalystSignal): TradeLens {
   const text = `${signal.actor} ${signal.title} ${signal.hits}`;
 
+  if (
+    /US–CHINA|China.{0,30}summit|summit.{0,30}China|Trump.{0,40}Xi|Xi.{0,40}Trump|trade truce|export controls?/i.test(
+      text,
+    )
+  ) {
+    return {
+      clock: "Policy headline → CNH / DXY → semis and China ADRs → NQ / ES",
+      firstMove: "USD/CNH, DXY, SOX / SMH, KWEB / FXI, then NQ relative to ES",
+      vehicles:
+        "CNH and directly exposed shares are closest to the policy. SMH / SOXX, China ETFs and NQ are broader proxies that require breadth confirmation.",
+      beneficiaries:
+        "Semiconductors, China ADRs, global cyclicals and China-exposed megacaps if restrictions ease or the truce gains enforceable detail",
+      pressure:
+        "The same groups if tariffs, retaliation, chip restrictions or supply-chain controls tighten",
+      confirms:
+        "Official communiqué, implementation dates, CNH strength, semiconductor breadth and NQ participation",
+      invalidates:
+        "Ceremonial language, no implementation detail, policy walk-back, or CNH and semiconductors ignore the headline",
+    };
+  }
+
   if (/ENERGY|WTI|BRENT|oil|crude|tanker|hormuz/i.test(text)) {
     return {
       clock: "Headline minutes → front contracts → cash-session equities",
       firstMove: "Brent vs WTI, prompt spreads, crude options volatility",
-      vehicles: "Brent futures are direct; BNO is a proxy. CL / USO express WTI. XLE and company names add equity-session and business-mix risk.",
+      vehicles:
+        "Brent futures are direct; BNO is a proxy. CL / USO express WTI. XLE and company names add equity-session and business-mix risk.",
       beneficiaries: "Upstream producers, exporters, BNO / XLE if crude strength holds",
       pressure: "Airlines, transports, fuel-intensive industries; refiners depend on crack spreads",
       confirms: "Brent leads WTI, backwardation firms, energy breadth expands, breakevens rise",
@@ -130,11 +249,16 @@ export function tradeLensFor(signal: CatalystSignal): TradeLens {
     return {
       clock: "Statement seconds → rates / FX → index futures → sector rotation",
       firstMove: "2Y yield, DXY, SOFR path, NQ relative to ES",
-      vehicles: "Treasury and rate futures are direct. QQQ / SPY, banks, gold and homebuilders are conditional equity or asset proxies.",
-      beneficiaries: "Duration if yields fall; lenders if the curve steepens for constructive reasons",
-      pressure: "Long-duration growth when real yields rise; rate-sensitive credit when conditions tighten",
-      confirms: "Rates and dollar agree, breadth follows, financial conditions move with the headline",
-      invalidates: "Front-end yields reverse, DXY diverges, or index breadth refuses the initial move",
+      vehicles:
+        "Treasury and rate futures are direct. QQQ / SPY, banks, gold and homebuilders are conditional equity or asset proxies.",
+      beneficiaries:
+        "Duration if yields fall; lenders if the curve steepens for constructive reasons",
+      pressure:
+        "Long-duration growth when real yields rise; rate-sensitive credit when conditions tighten",
+      confirms:
+        "Rates and dollar agree, breadth follows, financial conditions move with the headline",
+      invalidates:
+        "Front-end yields reverse, DXY diverges, or index breadth refuses the initial move",
     };
   }
 
@@ -142,22 +266,35 @@ export function tradeLensFor(signal: CatalystSignal): TradeLens {
     return {
       clock: "Headline seconds → FX / commodities → futures → exposed companies",
       firstMove: "DXY, rates, crude / gold, index futures and trade-sensitive baskets",
-      vehicles: "Use the closest macro future first; sector ETFs and single names add policy-detail, liquidity and overnight gap risk.",
-      beneficiaries: "Depends on policy: domestic substitutes, defense, or energy may gain relative strength",
-      pressure: "Importers, globally sourced margins, exporters facing retaliation, fuel-sensitive groups",
+      vehicles:
+        "Use the closest macro future first; sector ETFs and single names add policy-detail, liquidity and overnight gap risk.",
+      beneficiaries:
+        "Depends on policy: domestic substitutes, defense, or energy may gain relative strength",
+      pressure:
+        "Importers, globally sourced margins, exporters facing retaliation, fuel-sensitive groups",
       confirms: "Official language, implementation detail, sector breadth, FX and rates agreement",
-      invalidates: "Walk-back or delay, no official document, or directly exposed names ignore the headline",
+      invalidates:
+        "Walk-back or delay, no official document, or directly exposed names ignore the headline",
     };
   }
 
-  if (signal.actor !== "ELON" && /OPENAI|NVDA|AAPL|MSFT|GOOGL|AMZN|META|Altman|NVIDIA|Apple|Microsoft|Alphabet|Google|Amazon|Meta|AI|compute/i.test(text)) {
+  if (
+    signal.actor !== "ELON" &&
+    /OPENAI|NVDA|AAPL|MSFT|GOOGL|AMZN|META|Altman|NVIDIA|Apple|Microsoft|Alphabet|Google|Amazon|Meta|AI|compute/i.test(
+      text,
+    )
+  ) {
     return {
       clock: "Named company → suppliers / partners → semiconductor breadth → NQ",
       firstMove: "Named stock, closest suppliers, cloud partners, SOX relative strength",
-      vehicles: "The named stock is direct. Suppliers, SMH / SOXX and QQQ are progressively broader proxies with more unrelated exposure.",
-      beneficiaries: "Compute, networking, memory, power and cloud names when demand is incremental",
-      pressure: "Incumbents or high-multiple peers if the news changes cost, access, or competitive position",
-      confirms: "Volume in the named stock, supplier participation, SOX breadth and estimate revisions",
+      vehicles:
+        "The named stock is direct. Suppliers, SMH / SOXX and QQQ are progressively broader proxies with more unrelated exposure.",
+      beneficiaries:
+        "Compute, networking, memory, power and cloud names when demand is incremental",
+      pressure:
+        "Incumbents or high-multiple peers if the news changes cost, access, or competitive position",
+      confirms:
+        "Volume in the named stock, supplier participation, SOX breadth and estimate revisions",
       invalidates: "One-stock spike, suppliers lag, no economic detail, or NQ breadth deteriorates",
     };
   }
@@ -166,35 +303,48 @@ export function tradeLensFor(signal: CatalystSignal): TradeLens {
     return {
       clock: "Named company first → adjacent theme → NQ only if breadth develops",
       firstMove: "TSLA or named company, options volatility, adjacent autonomy / AI names",
-      vehicles: "The named company is direct. Options add volatility and timing risk; theme baskets and NQ require breadth confirmation.",
-      beneficiaries: "Direct suppliers and adjacent themes only when the statement changes economics",
-      pressure: "Competitors or counterparties named by the catalyst; index impact requires breadth",
+      vehicles:
+        "The named company is direct. Options add volatility and timing risk; theme baskets and NQ require breadth confirmation.",
+      beneficiaries:
+        "Direct suppliers and adjacent themes only when the statement changes economics",
+      pressure:
+        "Competitors or counterparties named by the catalyst; index impact requires breadth",
       confirms: "Primary-source detail, sustained volume, peer reaction and options follow-through",
-      invalidates: "Social-only claim, rapid reversal, no peer reaction, or no change to fundamentals",
+      invalidates:
+        "Social-only claim, rapid reversal, no peer reaction, or no change to fundamentals",
     };
   }
 
   return {
     clock: "Source confirmation → direct market → sector breadth → index",
     firstMove: "The closest listed market and directly exposed names",
-    vehicles: "Prefer the instrument closest to the mechanism; label ETFs, sectors and indices as proxies with basis and session risk.",
+    vehicles:
+      "Prefer the instrument closest to the mechanism; label ETFs, sectors and indices as proxies with basis and session risk.",
     beneficiaries: "Groups with improving revenue, pricing power, supply, or funding conditions",
-    pressure: "Groups facing the inverse mechanism: higher costs, tighter liquidity, or lost demand",
-    confirms: "Primary-source confirmation, price / volume follow-through, and cross-market agreement",
-    invalidates: "Source contradiction, reversal in the direct market, or failure to spread beyond one name",
+    pressure:
+      "Groups facing the inverse mechanism: higher costs, tighter liquidity, or lost demand",
+    confirms:
+      "Primary-source confirmation, price / volume follow-through, and cross-market agreement",
+    invalidates:
+      "Source contradiction, reversal in the direct market, or failure to spread beyond one name",
   };
 }
 
 function relevantQuotes(signal: CatalystSignal, quotes: Quote[]) {
   const text = `${signal.actor} ${signal.title} ${signal.hits}`;
-  const wanted = /ENERGY|WTI|BRENT|oil|crude/i.test(text)
-    ? ["WTI", "GOLD", "GSPC", "NQ"]
-    : /FED|FOMC|rates|inflation/i.test(text)
-      ? ["NQ", "GSPC", "GOLD", "DJI"]
-      : /OPENAI|NVDA|ELON|Musk|AI|compute/i.test(text)
-        ? ["NQ", "GSPC", "DJI"]
-        : ["GSPC", "NQ", "GOLD", "WTI"];
-  const byLabel = new Map(quotes.filter((quote) => quote.price > 0).map((quote) => [quote.label, quote]));
+  const wanted =
+    /US–CHINA|China.{0,30}summit|summit.{0,30}China|trade truce|export controls?/i.test(text)
+      ? ["NQ", "GSPC", "DXY", "VIX"]
+      : /ENERGY|MIDEAST|WTI|BRENT|oil|crude/i.test(text)
+        ? ["BRENT", "WTI", "GOLD", "NQ"]
+        : /FED|FOMC|rates|inflation/i.test(text)
+          ? ["NQ", "GSPC", "GOLD", "DJI"]
+          : /OPENAI|NVDA|ELON|Musk|AI|compute/i.test(text)
+            ? ["NQ", "GSPC", "DJI"]
+            : ["GSPC", "NQ", "GOLD", "WTI"];
+  const byLabel = new Map(
+    quotes.filter((quote) => quote.price > 0).map((quote) => [quote.label, quote]),
+  );
   return wanted.flatMap((label) => {
     const quote = byLabel.get(label);
     return quote ? [quote] : [];
@@ -210,7 +360,11 @@ function makeFlow(signal: CatalystSignal): FlowModel {
     {
       id: "source-primary",
       kind: "source",
-      eyebrow: signal.verified ? "SOURCE LINKED" : signal.status === "live" ? "DISCOVERED FEED" : "SCHEDULE",
+      eyebrow: signal.verified
+        ? "SOURCE LINKED"
+        : signal.status === "live"
+          ? "DISCOVERED FEED"
+          : "SCHEDULE",
       label: signal.source,
       what: signal.verified
         ? "The publisher or official source linked to this catalyst. A link proves provenance, not the underlying claim."
@@ -224,7 +378,11 @@ function makeFlow(signal: CatalystSignal): FlowModel {
     {
       id: "source-live",
       kind: "source",
-      eyebrow: signal.videoId ? (signal.verified ? "PRIMARY LIVE" : "LIVE · VERIFY SUBJECT") : "LIVE DESK",
+      eyebrow: signal.videoId
+        ? signal.verified
+          ? "PRIMARY LIVE"
+          : "LIVE · VERIFY SUBJECT"
+        : "LIVE DESK",
       label: signal.videoId ? "On-air feed" : "Official rooms",
       what: signal.videoId
         ? signal.verified
@@ -232,7 +390,9 @@ function makeFlow(signal: CatalystSignal): FlowModel {
           : "A stream confirmed on air; the title and named subject still require visual or primary-source confirmation."
         : "Official and broadcast rooms monitored for a live handoff.",
       why: "Live remarks can change the meaning of a headline in seconds; the full statement matters more than a clipped quote.",
-      next: signal.videoId ? "Watch inside ACTA and compare the remarks with the wire." : "Open the live search without assuming someone is currently speaking.",
+      next: signal.videoId
+        ? "Watch inside ACTA and compare the remarks with the wire."
+        : "Open the live search without assuming someone is currently speaking.",
       href: signal.videoId ? signal.href : youtubeQuery,
     },
     {
@@ -278,15 +438,17 @@ function makeFlow(signal: CatalystSignal): FlowModel {
     next: `Open the ${asset} book or chart and compare price, volume, and breadth with the developing source record.`,
   }));
 
-  const expressionNodes: FlowNode[] = expressions.slice(0, assetNodes.length || 3).map((expression, index) => ({
-    id: `expression-${index}`,
-    kind: "expression",
-    eyebrow: "EXPOSURE · NOT A CALL",
-    label: expression.label,
-    what: `A company, sector, or fund expression connected to ${signal.title}.`,
-    why: expression.why,
-    next: "Compare the individual expression with its parent market. Divergence can reveal where the event is actually being priced.",
-  }));
+  const expressionNodes: FlowNode[] = expressions
+    .slice(0, assetNodes.length || 3)
+    .map((expression, index) => ({
+      id: `expression-${index}`,
+      kind: "expression",
+      eyebrow: "EXPOSURE · NOT A CALL",
+      label: expression.label,
+      what: `A company, sector, or fund expression connected to ${signal.title}.`,
+      why: expression.why,
+      next: "Compare the individual expression with its parent market. Divergence can reveal where the event is actually being priced.",
+    }));
 
   const edges: FlowEdge[] = [
     ...sourceNodes.map((source) => ({ from: source.id, to: eventNode.id, label: "informs" })),
@@ -299,7 +461,11 @@ function makeFlow(signal: CatalystSignal): FlowModel {
     })),
   ];
 
-  return { nodes: [...sourceNodes, eventNode, mechanismNode, ...assetNodes, ...expressionNodes], edges, trade: tradeLensFor(signal) };
+  return {
+    nodes: [...sourceNodes, eventNode, mechanismNode, ...assetNodes, ...expressionNodes],
+    edges,
+    trade: tradeLensFor(signal),
+  };
 }
 
 function nodePositions(model: FlowModel) {
@@ -329,8 +495,14 @@ export function GlobalFlow({
   const [selectedId, setSelectedId] = useState("event");
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const model = useMemo(() => (activeSignal ? makeFlow(activeSignal) : null), [activeSignal]);
-  const positions = useMemo(() => (model ? nodePositions(model) : new Map<string, { x: number; y: number }>()), [model]);
-  const tape = useMemo(() => (activeSignal ? relevantQuotes(activeSignal, quotes) : []), [activeSignal, quotes]);
+  const positions = useMemo(
+    () => (model ? nodePositions(model) : new Map<string, { x: number; y: number }>()),
+    [model],
+  );
+  const tape = useMemo(
+    () => (activeSignal ? relevantQuotes(activeSignal, quotes) : []),
+    [activeSignal, quotes],
+  );
 
   useEffect(() => {
     setSelectedId("event");
@@ -338,12 +510,22 @@ export function GlobalFlow({
   }, [activeSignal?.id]);
 
   if (!activeSignal || !model) {
-    return <p className="text-muted rounded-2xl border border-line p-6 text-sm">No catalyst is available to map right now.</p>;
+    return (
+      <p className="text-muted rounded-2xl border border-line p-6 text-sm">
+        No catalyst is available to map right now.
+      </p>
+    );
   }
 
   const focusId = hoveredId ?? selectedId;
-  const selectedNode = model.nodes.find((node) => node.id === selectedId) ?? model.nodes.find((node) => node.id === "event")!;
-  const related = new Set(model.edges.filter((edge) => edge.from === focusId || edge.to === focusId).flatMap((edge) => [edge.from, edge.to]));
+  const selectedNode =
+    model.nodes.find((node) => node.id === selectedId) ??
+    model.nodes.find((node) => node.id === "event")!;
+  const related = new Set(
+    model.edges
+      .filter((edge) => edge.from === focusId || edge.to === focusId)
+      .flatMap((edge) => [edge.from, edge.to]),
+  );
   related.add(focusId);
   const stages: FlowKind[] = ["source", "event", "mechanism", "asset", "expression"];
 
@@ -352,7 +534,9 @@ export function GlobalFlow({
       <header className="border-b border-line px-4 py-4 sm:px-6 sm:py-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
-            <p className="text-gold text-[11px] tracking-[0.22em] uppercase">Global intelligence flow</p>
+            <p className="text-gold text-[11px] tracking-[0.22em] uppercase">
+              Global intelligence flow
+            </p>
             <h2 className="mt-1 text-xl leading-tight sm:text-3xl">{activeSignal.title}</h2>
             <p className="text-muted mt-2 text-[11px] tracking-wide uppercase">
               {activeSignal.actor} · {statusLabel(activeSignal)} · {activeSignal.source}
@@ -365,28 +549,57 @@ export function GlobalFlow({
         </div>
         <p className="text-muted mt-4 text-xs">Catalyst → repricing → trade map</p>
         <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[10px] tracking-[0.14em] uppercase">
-          <span className="text-muted"><b className="text-fg font-medium">Source-linked</b> evidence</span>
-          <span className="text-muted"><b className="text-fg font-medium">Curated</b> relationships</span>
-          <span className="text-muted"><b className="text-fg font-medium">Social</b> attention, not confirmation</span>
+          <span className="text-muted">
+            <b className="text-fg font-medium">Source-linked</b> evidence
+          </span>
+          <span className="text-muted">
+            <b className="text-fg font-medium">Curated</b> relationships
+          </span>
+          <span className="text-muted">
+            <b className="text-fg font-medium">Social</b> attention, not confirmation
+          </span>
         </div>
-        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-4" aria-label="Relevant live market tape">
+        <div
+          className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-4"
+          aria-label="Relevant live market tape"
+        >
           <span className="text-muted mr-1 text-[9px] tracking-[0.16em] uppercase">Tape check</span>
-          {tape.length ? tape.map((quote) => (
-            <span key={quote.symbol} className="rounded-full border border-line bg-black/40 px-2.5 py-1 text-[11px] tabular-nums">
-              <b className="font-medium">{quote.label}</b> {quote.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}{" "}
-              <span className={quote.changePct < 0 ? "text-down" : "text-up"}>{quote.changePct >= 0 ? "+" : ""}{quote.changePct.toFixed(2)}%</span>
+          {tape.length ? (
+            tape.map((quote) => (
+              <span
+                key={quote.symbol}
+                className="rounded-full border border-line bg-black/40 px-2.5 py-1 text-[11px] tabular-nums"
+              >
+                <b className="font-medium">{quote.label}</b>{" "}
+                {quote.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}{" "}
+                <span className={quote.changePct < 0 ? "text-down" : "text-up"}>
+                  {quote.changePct >= 0 ? "+" : ""}
+                  {quote.changePct.toFixed(2)}%
+                </span>
+              </span>
+            ))
+          ) : (
+            <span className="text-muted text-[11px]">
+              Live confirmation values unavailable · relationship map only
             </span>
-          )) : <span className="text-muted text-[11px]">Live confirmation values unavailable · relationship map only</span>}
+          )}
         </div>
       </header>
 
-      <section className="border-b border-line bg-black/35 p-4 sm:p-6" aria-label="Trader decision map">
+      <section
+        className="border-b border-line bg-black/35 p-4 sm:p-6"
+        aria-label="Trader decision map"
+      >
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-gold text-[10px] tracking-[0.2em] uppercase">Trader lens · conditional, not a call</p>
+            <p className="text-gold text-[10px] tracking-[0.2em] uppercase">
+              Trader lens · conditional, not a call
+            </p>
             <h3 className="mt-1 text-xl">What has to happen for this to matter?</h3>
           </div>
-          <p className="text-muted max-w-md text-right text-[11px] tracking-wide uppercase">{model.trade.clock}</p>
+          <p className="text-muted max-w-md text-right text-[11px] tracking-wide uppercase">
+            {model.trade.clock}
+          </p>
         </div>
         <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
           {[
@@ -407,7 +620,12 @@ export function GlobalFlow({
 
       <div className="relative hidden h-[400px] md:block" onMouseLeave={() => setHoveredId(null)}>
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(201,184,234,.10),transparent_38%)]" />
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true">
+        <svg
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          className="pointer-events-none absolute inset-0 h-full w-full"
+          aria-hidden="true"
+        >
           {model.edges.map((edge) => {
             const from = positions.get(edge.from);
             const to = positions.get(edge.to);
@@ -423,7 +641,11 @@ export function GlobalFlow({
                 stroke={active ? KIND_COLOR[target.kind] : "var(--color-line)"}
                 strokeWidth={active ? 0.58 : 0.22}
                 opacity={active ? 0.95 : 0.38}
-                style={active ? { filter: `drop-shadow(0 0 2px ${KIND_COLOR[target.kind]}aa)` } : undefined}
+                style={
+                  active
+                    ? { filter: `drop-shadow(0 0 2px ${KIND_COLOR[target.kind]}aa)` }
+                    : undefined
+                }
               />
             );
           })}
@@ -448,11 +670,22 @@ export function GlobalFlow({
               style={{
                 left: `${pos.x}%`,
                 top: `${pos.y}%`,
-                borderColor: selected ? KIND_COLOR[node.kind] : active ? `${KIND_COLOR[node.kind]}99` : "var(--color-line)",
-                boxShadow: selected ? `0 0 0 1px ${KIND_COLOR[node.kind]}66, 0 0 22px ${KIND_COLOR[node.kind]}44` : undefined,
+                borderColor: selected
+                  ? KIND_COLOR[node.kind]
+                  : active
+                    ? `${KIND_COLOR[node.kind]}99`
+                    : "var(--color-line)",
+                boxShadow: selected
+                  ? `0 0 0 1px ${KIND_COLOR[node.kind]}66, 0 0 22px ${KIND_COLOR[node.kind]}44`
+                  : undefined,
               }}
             >
-              <span className="block text-[9px] tracking-[0.14em] uppercase" style={{ color: KIND_COLOR[node.kind] }}>{node.eyebrow}</span>
+              <span
+                className="block text-[9px] tracking-[0.14em] uppercase"
+                style={{ color: KIND_COLOR[node.kind] }}
+              >
+                {node.eyebrow}
+              </span>
               <strong className="mt-1 block text-xs font-medium leading-snug">{node.label}</strong>
             </button>
           );
@@ -465,16 +698,26 @@ export function GlobalFlow({
           return (
             <div key={stage}>
               {stageIndex ? <p className="text-muted mb-2 text-center text-lg">↓</p> : null}
-              <p className="text-muted mb-2 text-[10px] tracking-[0.18em] uppercase">{KIND_LABEL[stage]}</p>
+              <p className="text-muted mb-2 text-[10px] tracking-[0.18em] uppercase">
+                {KIND_LABEL[stage]}
+              </p>
               <div className="grid gap-2 sm:grid-cols-2">
                 {nodes.map((node) => (
                   <button
                     key={node.id}
                     type="button"
                     onClick={() => setSelectedId(node.id)}
-                    className={cn("rounded-xl border bg-surface p-3 text-left", selectedId === node.id ? "border-gold/70" : "border-line")}
+                    className={cn(
+                      "rounded-xl border bg-surface p-3 text-left",
+                      selectedId === node.id ? "border-gold/70" : "border-line",
+                    )}
                   >
-                    <span className="text-[9px] tracking-[0.14em] uppercase" style={{ color: KIND_COLOR[node.kind] }}>{node.eyebrow}</span>
+                    <span
+                      className="text-[9px] tracking-[0.14em] uppercase"
+                      style={{ color: KIND_COLOR[node.kind] }}
+                    >
+                      {node.eyebrow}
+                    </span>
                     <strong className="mt-1 block text-sm font-medium">{node.label}</strong>
                   </button>
                 ))}
@@ -484,15 +727,25 @@ export function GlobalFlow({
         })}
       </div>
 
-      <div className="border-t border-line bg-surface/80 p-4 sm:p-6" style={{ borderTopColor: KIND_COLOR[selectedNode.kind] }}>
+      <div
+        className="border-t border-line bg-surface/80 p-4 sm:p-6"
+        style={{ borderTopColor: KIND_COLOR[selectedNode.kind] }}
+      >
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-3xl">
-            <p className="text-muted text-[10px] tracking-[0.2em] uppercase">{KIND_LABEL[selectedNode.kind]} · WHAT</p>
+            <p className="text-muted text-[10px] tracking-[0.2em] uppercase">
+              {KIND_LABEL[selectedNode.kind]} · WHAT
+            </p>
             <h3 className="mt-1 text-xl sm:text-2xl">{selectedNode.label}</h3>
             <p className="text-muted mt-2 text-sm leading-relaxed">{selectedNode.what}</p>
           </div>
           {selectedNode.href ? (
-            <a className="pill pill-solid" href={selectedNode.href} target={selectedNode.href.startsWith("http") ? "_blank" : undefined} rel="noreferrer">
+            <a
+              className="pill pill-solid"
+              href={selectedNode.href}
+              target={selectedNode.href.startsWith("http") ? "_blank" : undefined}
+              rel="noreferrer"
+            >
               Open source {selectedNode.href.startsWith("http") ? "↗" : "→"}
             </a>
           ) : null}

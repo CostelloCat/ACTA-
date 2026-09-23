@@ -1,6 +1,6 @@
 import { EVENTS, eventStamp, type CalEvent } from "./calendar";
 import type { MosaicRow } from "./channels";
-import type { NewsItem } from "./desk";
+import { newsPriorityScore, type NewsItem } from "./desk";
 
 export type CatalystStatus = "live" | "breaking" | "upcoming" | "monitoring";
 
@@ -26,9 +26,30 @@ export type CatalystWatch = {
   pattern: RegExp;
   hits: string;
   mechanism: string;
+  brief?: string;
 };
 
 export const CATALYST_WATCHLIST: CatalystWatch[] = [
+  {
+    id: "us-china",
+    label: "US–CHINA",
+    pattern:
+      /u\.?s\.?[-–— ]*china|united states.{0,32}china|china.{0,32}united states|trump.{0,48}xi(?: jinping)?|xi(?: jinping)?.{0,48}trump|trade truce|china.{0,24}summit|summit.{0,24}china|export controls?.{0,36}(?:china|chips?|semiconductors?)|(?:china|chips?|semiconductors?).{0,36}export controls?/i,
+    hits: "NQ · ES · DXY · SOX · China ADRs",
+    mechanism: "Tariffs, export controls, AI / chip rules, supply chains and risk appetite",
+    brief:
+      "The tradable detail is not that leaders are meeting. It is whether the language changes tariffs, export controls, chip access, AI rules, or implementation dates—and whether CNH, semiconductors and index breadth agree.",
+  },
+  {
+    id: "mideast",
+    label: "MIDEAST",
+    pattern:
+      /iran|israel|middle east|mideast|strait of hormuz|gulf supply|red sea|houthi|ceasefire/i,
+    hits: "BRENT · WTI · GOLD · DXY · NQ",
+    mechanism: "Energy supply, shipping routes, inflation expectations and risk appetite",
+    brief:
+      "Separate diplomacy from physical supply. The trade strengthens only if crude, prompt spreads, shipping risk, inflation expectations or safe havens confirm the headline.",
+  },
   {
     id: "djt",
     label: "DJT",
@@ -108,13 +129,27 @@ export const CATALYST_WATCHLIST: CatalystWatch[] = [
   },
 ];
 
-const BREAKING_PATTERN = /\bbreaking\b|live updates?|\bemergency\b|unexpectedly|trading halt(?:ed)?|market halt(?:ed)?|airspace clos(?:ed|ure)|strait clos(?:ed|ure)|missile|strike[sd]?|attack(?:ed|s)?|resign(?:s|ed)?|declare[sd]?|announce[sd]?/i;
-const MIC_PATTERN = /keynote|devday|presser|press conference|remarks|speaks?|earnings call|fireside chat/i;
-const APPEARANCE_PATTERN = /\blive\b|speaks?|remarks|keynote|interview|testif(?:y|ies)|press conference|town hall|fireside chat/i;
+const BREAKING_PATTERN =
+  /\bbreaking\b|live updates?|\bemergency\b|unexpectedly|trading halt(?:ed)?|market halt(?:ed)?|airspace clos(?:ed|ure)|strait clos(?:ed|ure)|missile|strike[sd]?|attack(?:ed|s)?|resign(?:s|ed)?|declare[sd]?|announce[sd]?/i;
+const MIC_PATTERN =
+  /keynote|devday|presser|press conference|remarks|speaks?|earnings call|fireside chat/i;
+const APPEARANCE_PATTERN =
+  /\blive\b|speaks?|remarks|keynote|interview|testif(?:y|ies)|press conference|town hall|fireside chat/i;
 const LIVE_WINDOW_MS = 90 * 60 * 1000;
+const DEVELOPING_WINDOW_MS = 18 * 60 * 60 * 1000;
+
+export function watchesFor(text: string) {
+  const matches = CATALYST_WATCHLIST.filter((watch) => watch.pattern.test(text));
+  const ids = new Set(matches.map((watch) => watch.id));
+  return matches.filter((watch) => {
+    if (watch.id === "djt" && ids.has("us-china")) return false;
+    if (watch.id === "energy" && ids.has("mideast")) return false;
+    return true;
+  });
+}
 
 export function watchFor(text: string) {
-  return CATALYST_WATCHLIST.find((watch) => watch.pattern.test(text)) ?? null;
+  return watchesFor(text)[0] ?? null;
 }
 
 function publishedAt(item: NewsItem) {
@@ -163,7 +198,8 @@ function liveSignals(mosaic: MosaicRow[]) {
   return mosaic
     .filter((row) => row.onAir && row.videoId)
     .map((row): CatalystSignal | null => {
-      const text = row.provenance === "discovered" ? row.title : `${row.label} ${row.title} ${row.query}`;
+      const text =
+        row.provenance === "discovered" ? row.title : `${row.label} ${row.title} ${row.query}`;
       const watch = watchFor(text);
       const officialDesk = /white house|federal reserve|house floor|c-span/i.test(text);
       if (!watch && !officialDesk) return null;
@@ -187,30 +223,39 @@ function liveSignals(mosaic: MosaicRow[]) {
 function breakingSignals(news: NewsItem[], now: Date) {
   const seen = new Set<string>();
   const signals: CatalystSignal[] = [];
-  for (const item of news) {
+  const ranked = [...news].sort(
+    (a, b) => newsPriorityScore(b, now.getTime()) - newsPriorityScore(a, now.getTime()),
+  );
+  for (const item of ranked) {
     const at = publishedAt(item);
     if (at === null || now.getTime() - at > 3 * 60 * 60 * 1000) continue;
-    const watch = watchFor(item.title);
+    const watches = watchesFor(item.title);
     const urgent = BREAKING_PATTERN.test(item.title);
-    const watchedAppearance = Boolean(watch && APPEARANCE_PATTERN.test(item.title));
+    const watchedAppearance = Boolean(watches.length && APPEARANCE_PATTERN.test(item.title));
     if (!urgent && !watchedAppearance) continue;
-    const key = `${watch?.id ?? item.kind}-${item.title.toLowerCase().slice(0, 80)}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    signals.push({
-      id: `wire-${signals.length}-${at}`,
-      actor: watch?.label ?? item.kind,
-      status: "breaking",
-      title: item.title,
-      summary: `Fresh reporting from ${item.source}. Open the original source before treating the headline as confirmed context.`,
-      mechanism: watch?.mechanism ?? "Breaking information with potential cross-asset consequences",
-      hits: watch?.hits ?? kindHits(item.kind),
-      source: item.source,
-      href: item.link,
-      at,
-      verified: true,
-    });
-    if (signals.length >= 4) break;
+    const contexts: Array<CatalystWatch | null> = watches.length ? watches : [null];
+    for (const watch of contexts) {
+      const key = `${watch?.id ?? item.kind}-${item.title.toLowerCase().slice(0, 80)}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      signals.push({
+        id: `wire-${watch?.id ?? item.kind}-${at}`,
+        actor: watch?.label ?? item.kind,
+        status: "breaking",
+        title: item.title,
+        summary:
+          watch?.brief ??
+          `Fresh reporting from ${item.source}. Open the original source before treating the headline as confirmed context.`,
+        mechanism:
+          watch?.mechanism ?? "Breaking information with potential cross-asset consequences",
+        hits: watch?.hits ?? kindHits(item.kind),
+        source: item.source,
+        href: item.link,
+        at,
+        verified: true,
+      });
+      if (signals.length >= 4) return signals;
+    }
   }
   return signals;
 }
@@ -218,30 +263,42 @@ function breakingSignals(news: NewsItem[], now: Date) {
 function monitoringSignals(news: NewsItem[], now: Date, excludedTitles: Set<string>) {
   const seen = new Set<string>();
   const signals: CatalystSignal[] = [];
-  for (const item of news) {
+  const ranked = [...news].sort(
+    (a, b) => newsPriorityScore(b, now.getTime()) - newsPriorityScore(a, now.getTime()),
+  );
+  for (const item of ranked) {
     const at = publishedAt(item);
-    if (at === null || now.getTime() - at > 6 * 60 * 60 * 1000) continue;
+    if (at === null || now.getTime() - at > DEVELOPING_WINDOW_MS) continue;
     if (excludedTitles.has(item.title.toLowerCase())) continue;
-    const watch = watchFor(item.title);
-    if (!watch && item.kind !== "OIL" && item.kind !== "GEO") continue;
-    const actor = watch?.label ?? (item.kind === "OIL" ? "ENERGY" : "GEO");
-    const key = `${actor}-${item.title.toLowerCase().slice(0, 80)}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    signals.push({
-      id: `monitor-${signals.length}-${at}`,
-      actor,
-      status: "monitoring",
-      title: item.title,
-      summary: `Recent source-linked coverage from ${item.source}. ACTA is monitoring the transmission path without labeling it breaking.`,
-      mechanism: watch?.mechanism ?? (item.kind === "OIL" ? "Supply, transport, inflation and margin pressure" : "Geopolitics, policy response and cross-asset risk"),
-      hits: watch?.hits ?? kindHits(item.kind),
-      source: item.source,
-      href: item.link,
-      at,
-      verified: true,
-    });
-    if (signals.length >= 3) break;
+    const watches = watchesFor(item.title);
+    if (!watches.length && item.kind !== "OIL" && item.kind !== "GEO") continue;
+    const contexts: Array<CatalystWatch | null> = watches.length ? watches : [null];
+    for (const watch of contexts) {
+      const actor = watch?.label ?? (item.kind === "OIL" ? "ENERGY" : "GEO");
+      const key = `${actor}-${item.title.toLowerCase().slice(0, 80)}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      signals.push({
+        id: `monitor-${watch?.id ?? item.kind}-${at}`,
+        actor,
+        status: "monitoring",
+        title: item.title,
+        summary:
+          watch?.brief ??
+          `Recent source-linked coverage from ${item.source}. ACTA is monitoring the transmission path without labeling it breaking.`,
+        mechanism:
+          watch?.mechanism ??
+          (item.kind === "OIL"
+            ? "Supply, transport, inflation and margin pressure"
+            : "Geopolitics, policy response and cross-asset risk"),
+        hits: watch?.hits ?? kindHits(item.kind),
+        source: item.source,
+        href: item.link,
+        at,
+        verified: true,
+      });
+      if (signals.length >= 4) return signals;
+    }
   }
   return signals;
 }
@@ -250,6 +307,7 @@ function kindHits(kind: NewsItem["kind"]) {
   if (kind === "OIL") return "WTI · BRENT · energy names";
   if (kind === "RATES" || kind === "INFLATION") return "NQ · ES · GOLD · DXY";
   if (kind === "MAG7") return "NQ · single names";
+  if (kind === "POLICY") return "NQ · ES · DXY · exposed sectors";
   if (kind === "CRYPTO") return "BTC · ETH · crypto-linked names";
   return "Index futures · sectors · exposed names";
 }
@@ -272,7 +330,10 @@ export function buildCatalystSignals({
   const breakingTitles = new Set(breaking.map((signal) => signal.title.toLowerCase()));
   const monitoring = monitoringSignals(news, now, breakingTitles);
   const nextMic = scheduledCatalysts(now, 3, true);
-  return [...primaryLive, ...breaking, ...monitoring, ...discoveredLive, ...nextMic].slice(0, limit);
+  return [...primaryLive, ...breaking, ...monitoring, ...discoveredLive, ...nextMic].slice(
+    0,
+    limit,
+  );
 }
 
 export function buildDeskSignals({
@@ -285,15 +346,20 @@ export function buildDeskSignals({
   now?: Date;
 }) {
   const primaryLive = liveSignals(mosaic).filter((signal) => signal.verified);
-  const immediate = [...primaryLive, ...breakingSignals(news, now)];
+  const breaking = breakingSignals(news, now);
+  const breakingTitles = new Set(breaking.map((signal) => signal.title.toLowerCase()));
+  const developing = monitoringSignals(news, now, breakingTitles);
+  const immediate = [...primaryLive, ...breaking, ...developing];
   if (immediate.length) return immediate;
   return scheduledCatalysts(now, 1, false);
 }
 
 export function statusLabel(signal: CatalystSignal, now = new Date()) {
-  if (signal.status === "live") return signal.verified ? "LIVE · PRIMARY" : "LIVE COVERAGE · VERIFY SUBJECT";
+  if (signal.status === "live")
+    return signal.verified ? "LIVE · PRIMARY" : "LIVE COVERAGE · VERIFY SUBJECT";
   if (signal.status === "breaking") return "BREAKING · SOURCE LINKED";
-  if (signal.status === "monitoring") return signal.verified ? "MONITORING · SOURCE LINKED" : "WINDOW OPEN · VERIFYING";
+  if (signal.status === "monitoring")
+    return signal.verified ? "DEVELOPING · SOURCE LINKED" : "WINDOW OPEN · VERIFYING";
   if (!signal.at) return "MONITORING";
   const ms = signal.at - now.getTime();
   if (ms <= 0) return "DUE NOW";

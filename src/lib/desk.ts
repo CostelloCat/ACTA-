@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { ttlCache } from "./ttl-cache";
 
-export type WireKind = "OIL" | "RATES" | "INFLATION" | "MAG7" | "GEO" | "CRYPTO";
+export type WireKind = "OIL" | "RATES" | "INFLATION" | "MAG7" | "POLICY" | "GEO" | "CRYPTO";
 
 export type NewsItem = {
   title: string;
@@ -52,6 +52,8 @@ export type DeskHealth = {
 
 const FEEDS: Record<WireKey, string[]> = {
   "United States": [
+    "https://news.google.com/rss/search?q=site%3Areuters.com+%28Wall+Street+futures+OR+Nasdaq+futures+OR+Treasury+yields+OR+Brent%29+when%3A1d&hl=en-US&gl=US&ceid=US:en",
+    "https://news.google.com/rss/search?q=%28US+China+summit+OR+Trump+Xi+OR+trade+truce+OR+export+controls+OR+tariffs%29+when%3A3d&hl=en-US&gl=US&ceid=US:en",
     "https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en",
     "https://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml",
   ],
@@ -66,17 +68,20 @@ const FEEDS: Record<WireKey, string[]> = {
     "https://news.google.com/rss?hl=ru&gl=RU&ceid=RU:ru",
   ],
   "Middle East": [
+    "https://news.google.com/rss/search?q=%28Iran+OR+Hormuz+OR+Mideast+talks+OR+ceasefire+OR+Brent+OR+oil+supply%29+when%3A1d&hl=en-US&gl=US&ceid=US:en",
     "https://news.google.com/rss?hl=ar&gl=EG&ceid=EG:ar",
     "https://www.aljazeera.com/xml/rss/all.xml",
   ],
   Asia: [
+    "https://news.google.com/rss/search?q=%28Asia+markets+OR+Hang+Seng+OR+Nikkei+OR+BOJ+OR+semiconductors%29+when%3A1d&hl=en-US&gl=US&ceid=US:en",
     "https://www3.nhk.or.jp/rss/news/cat0.xml",
     "https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml",
     "https://news.google.com/rss?hl=ja&gl=JP&ceid=JP:ja",
   ],
   China: [
+    "https://news.google.com/rss/search?q=%28US+China+summit+OR+Trump+Xi+OR+trade+truce+OR+tariffs+OR+export+controls+OR+semiconductors%29+when%3A3d&hl=en-US&gl=US&ceid=US:en",
+    "https://news.google.com/rss/search?q=%28PBOC+OR+yuan+OR+China+markets+OR+CGTN%29+when%3A1d&hl=en-US&gl=US&ceid=US:en",
     "https://news.google.com/rss?hl=zh-CN&gl=CN&ceid=CN:zh-Hans",
-    "https://news.google.com/rss/search?q=PBOC+OR+CGTN+OR+China+markets+when:1d&hl=en-US&gl=US&ceid=US:en",
   ],
   LatAm: [
     "https://news.google.com/rss?hl=es-419&gl=MX&ceid=MX:es",
@@ -184,7 +189,10 @@ const FALLBACK_QUOTES: Quote[] = [
   { symbol: "^GSPC", label: "GSPC", price: 0, changePct: 0 },
   { symbol: "GC=F", label: "GOLD", price: 0, changePct: 0 },
   { symbol: "CL=F", label: "WTI", price: 0, changePct: 0 },
+  { symbol: "BZ=F", label: "BRENT", price: 0, changePct: 0 },
   { symbol: "NQ=F", label: "NQ", price: 0, changePct: 0 },
+  { symbol: "^VIX", label: "VIX", price: 0, changePct: 0 },
+  { symbol: "DX-Y.NYB", label: "DXY", price: 0, changePct: 0 },
 ];
 
 function decode(s: string) {
@@ -205,8 +213,42 @@ export function tagWire(title: string): WireKind {
   if (/oil|opec|crude|wti|brent|hormuz|tanker|refin|petroleum|газ|нефть/.test(t)) return "OIL";
   if (/cpi|inflation|pce|ppi/.test(t)) return "INFLATION";
   if (/fed|fomc|rate cut|treasury|yield|powell|ecb|boe|цб|pboc/.test(t)) return "RATES";
+  if (
+    /summit|trade truce|tariff|export control|sanction|negotiat|ceasefire|white house|xi jinping/.test(
+      t,
+    )
+  )
+    return "POLICY";
   if (/nvidia|apple|microsoft|google|amazon|tesla|meta|mag7/.test(t)) return "MAG7";
   return "GEO";
+}
+
+const MARKET_IMPACT_PATTERN =
+  /wall st(?:reet)? futures|nasdaq futures|s&p futures|treasur(?:y|ies)|yield|dxy|vix|brent|wti|crude|gold|summit|trade truce|tariff|export control|sanction|ceasefire|federal reserve|\bfed\b|fomc|cpi|pce|ppi|payroll|jobs report|flash pmi|nvidia|apple|microsoft|amazon|alphabet|google|meta|tesla|semiconductor/i;
+const POLICY_CATALYST_PATTERN =
+  /summit|talks?|negotiat|trade truce|tariff|export control|sanction|ceasefire|implementation|deadline/i;
+const MARKET_SOURCE_PATTERN =
+  /Reuters|Refinitiv|Associated Press|Bloomberg|Financial Times|CNBC|Wall Street Journal/i;
+
+export function newsPriorityScore(item: NewsItem, now = Date.now()) {
+  const stamp = Date.parse(item.published);
+  const ageMinutes = Number.isFinite(stamp)
+    ? Math.max(0, (now - stamp) / 60_000)
+    : Number.POSITIVE_INFINITY;
+  const freshness =
+    ageMinutes <= 15
+      ? 60
+      : ageMinutes <= 60
+        ? 48
+        : ageMinutes <= 180
+          ? 34
+          : ageMinutes <= 720
+            ? 18
+            : 0;
+  const marketImpact = MARKET_IMPACT_PATTERN.test(item.title) ? 28 : 0;
+  const policyCatalyst = POLICY_CATALYST_PATTERN.test(item.title) ? 18 : 0;
+  const attributableSource = MARKET_SOURCE_PATTERN.test(item.source) ? 10 : 0;
+  return freshness + marketImpact + policyCatalyst + attributableSource;
 }
 
 function parseRss(xml: string): NewsItem[] {
@@ -258,21 +300,27 @@ async function loadWire(key: WireKey): Promise<NewsItem[]> {
     seen.add(k);
     merged.push(row);
   }
-  return merged.length ? merged.slice(0, 12) : FALLBACK[key];
+  merged.sort((a, b) => newsPriorityScore(b) - newsPriorityScore(a));
+  return merged.length ? merged.slice(0, 16) : FALLBACK[key];
 }
 
 async function loadQuotes(): Promise<Quote[]> {
-  const symbols = "%5EDJI,%5EIXIC,%5EGSPC,GC=F,CL=F,NQ=F";
+  const symbols = "%5EDJI,%5EIXIC,%5EGSPC,GC=F,CL=F,BZ=F,NQ=F,%5EVIX,DX-Y.NYB";
   const labels: Record<string, string> = {
     "^DJI": "DJI",
     "^IXIC": "IXIC",
     "^GSPC": "GSPC",
     "GC=F": "GOLD",
     "CL=F": "WTI",
+    "BZ=F": "BRENT",
     "NQ=F": "NQ",
+    "^VIX": "VIX",
+    "DX-Y.NYB": "DXY",
   };
   try {
-    const raw = await fetchText(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`);
+    const raw = await fetchText(
+      `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`,
+    );
     const json = JSON.parse(raw) as {
       quoteResponse?: {
         result?: Array<{
@@ -318,11 +366,12 @@ export function deskHealth(desk: DeskPayload, now = new Date()): DeskHealth {
   const freshFetch = Number.isFinite(fetchAge) && fetchAge < 3 * 60_000;
   const recentWire = newestAge < 3 * 60 * 60_000;
   const enoughWires = liveRows.length >= 8;
-  const state: DeskHealthState = freshFetch && recentWire && enoughWires && liveQuoteCount >= 4
-    ? "healthy"
-    : liveRows.length > 0 || liveQuoteCount > 0
-      ? "degraded"
-      : "offline";
+  const state: DeskHealthState =
+    freshFetch && recentWire && enoughWires && liveQuoteCount >= 4
+      ? "healthy"
+      : liveRows.length > 0 || liveQuoteCount > 0
+        ? "degraded"
+        : "offline";
   return {
     state,
     fetchedAt: desk.fetchedAt,
@@ -340,7 +389,9 @@ export function deskHealth(desk: DeskPayload, now = new Date()): DeskHealth {
 const deskCache = ttlCache<DeskPayload>(60_000);
 
 async function loadDesk(): Promise<DeskPayload> {
-  const entries = await Promise.all(WIRE_KEYS.map(async (key) => [key, await loadWire(key)] as const));
+  const entries = await Promise.all(
+    WIRE_KEYS.map(async (key) => [key, await loadWire(key)] as const),
+  );
   const wires = Object.fromEntries(entries) as Record<WireKey, NewsItem[]>;
   const quotes = await loadQuotes();
   return {
