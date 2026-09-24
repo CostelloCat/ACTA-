@@ -1,6 +1,6 @@
 import { EVENTS, eventStamp, type CalEvent } from "./calendar";
 import type { MosaicRow } from "./channels";
-import { newsPriorityScore, type NewsItem } from "./desk";
+import { isMarketRelevantNews, newsPriorityScore, type NewsItem } from "./desk";
 
 export type CatalystStatus = "live" | "breaking" | "upcoming" | "monitoring";
 
@@ -232,6 +232,7 @@ function breakingSignals(news: NewsItem[], now: Date) {
     const watches = watchesFor(item.title);
     const urgent = BREAKING_PATTERN.test(item.title);
     const watchedAppearance = Boolean(watches.length && APPEARANCE_PATTERN.test(item.title));
+    if (!isMarketRelevantNews(item) && !watchedAppearance) continue;
     if (!urgent && !watchedAppearance) continue;
     const contexts: Array<CatalystWatch | null> = watches.length ? watches : [null];
     for (const watch of contexts) {
@@ -271,6 +272,7 @@ function monitoringSignals(news: NewsItem[], now: Date, excludedTitles: Set<stri
     if (at === null || now.getTime() - at > DEVELOPING_WINDOW_MS) continue;
     if (excludedTitles.has(item.title.toLowerCase())) continue;
     const watches = watchesFor(item.title);
+    if (!isMarketRelevantNews(item)) continue;
     if (!watches.length && item.kind !== "OIL" && item.kind !== "GEO") continue;
     const contexts: Array<CatalystWatch | null> = watches.length ? watches : [null];
     for (const watch of contexts) {
@@ -326,7 +328,7 @@ export function buildCatalystSignals({
   const live = liveSignals(mosaic);
   const primaryLive = live.filter((signal) => signal.verified);
   const discoveredLive = live.filter((signal) => !signal.verified);
-  const breaking = breakingSignals(news, now);
+  const breaking = breakingSignals(news, now).filter((signal) => signal.actor !== "CRYPTO");
   const breakingTitles = new Set(breaking.map((signal) => signal.title.toLowerCase()));
   const monitoring = monitoringSignals(news, now, breakingTitles);
   const nextMic = scheduledCatalysts(now, 3, true);
@@ -346,9 +348,11 @@ export function buildDeskSignals({
   now?: Date;
 }) {
   const primaryLive = liveSignals(mosaic).filter((signal) => signal.verified);
-  const breaking = breakingSignals(news, now);
+  const breaking = breakingSignals(news, now).filter((signal) => signal.actor !== "CRYPTO");
   const breakingTitles = new Set(breaking.map((signal) => signal.title.toLowerCase()));
-  const developing = monitoringSignals(news, now, breakingTitles);
+  const developing = monitoringSignals(news, now, breakingTitles).filter(
+    (signal) => signal.actor !== "CRYPTO",
+  );
   const immediate = [...primaryLive, ...breaking, ...developing];
   if (immediate.length) return immediate;
   return scheduledCatalysts(now, 1, false);

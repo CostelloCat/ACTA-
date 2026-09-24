@@ -37,7 +37,8 @@ export const EVENTS: CalEvent[] = [
     kind: "rates",
     hits: "NQ · ES",
     context: "Cash equity closed. Futures thin. Gulf and London still print oil and gold.",
-    history: "US holiday sessions: NQ range compresses. Fake breaks in Asia get faded into London. Don't size like a Tuesday.",
+    history:
+      "US holiday sessions: NQ range compresses. Fake breaks in Asia get faded into London. Don't size like a Tuesday.",
   },
   {
     date: "2026-09-09",
@@ -47,7 +48,8 @@ export const EVENTS: CalEvent[] = [
     kind: "mag7",
     hits: "NQ · AAPL",
     context: "Hardware cycle. MAG7 tape, not oil.",
-    history: "AAPL events gap the name, not the index, unless guidance changes the multiple. Fade the first NQ spike if it's just hardware theater.",
+    history:
+      "AAPL events gap the name, not the index, unless guidance changes the multiple. Fade the first NQ spike if it's just hardware theater.",
   },
   {
     date: "2026-09-10",
@@ -67,7 +69,8 @@ export const EVENTS: CalEvent[] = [
     kind: "mag7",
     hits: "NQ · NVDA",
     context: "Guidance tone moves the Nasdaq more than the print.",
-    history: "NVDA conference tone moves NQ more than ES. A cautious data-center comment can fade NQ 0.3–0.6% even on a quiet macro day.",
+    history:
+      "NVDA conference tone moves NQ more than ES. A cautious data-center comment can fade NQ 0.3–0.6% even on a quiet macro day.",
   },
   {
     date: "2026-09-10",
@@ -76,7 +79,8 @@ export const EVENTS: CalEvent[] = [
     kind: "oil",
     hits: "CL · GOLD",
     context: "Monthly oil report. Inventory surprise. Ignore the TV forecast. Read the draw.",
-    history: "MOMR moves CL if the demand revision is >0.5 mb/d. Gold follows only if crude rips >3%. NQ usually ignores it.",
+    history:
+      "MOMR moves CL if the demand revision is >0.5 mb/d. Gold follows only if crude rips >3%. NQ usually ignores it.",
   },
   {
     date: "2026-09-10",
@@ -85,7 +89,8 @@ export const EVENTS: CalEvent[] = [
     kind: "rates",
     hits: "ES · GOLD",
     context: "Euro path into FOMC week. Dovish ECB = dollar bid into Wednesday.",
-    history: "Dovish ECB = EUR fade, DXY bid, gold heavy into a US hike week. Hawkish ECB can bid gold for 30–60 minutes then fade into FOMC.",
+    history:
+      "Dovish ECB = EUR fade, DXY bid, gold heavy into a US hike week. Hawkish ECB can bid gold for 30–60 minutes then fade into FOMC.",
   },
   {
     date: "2026-09-11",
@@ -106,7 +111,8 @@ export const EVENTS: CalEvent[] = [
     kind: "inflation",
     hits: "NQ · ES",
     context: "Consumer spend into a hike day. Soft sales cap the hawk.",
-    history: "Retail sales rarely own the day if FOMC is later. Soft control-group sales cap the hawk for an hour, then the dots take over.",
+    history:
+      "Retail sales rarely own the day if FOMC is later. Soft control-group sales cap the hawk for an hour, then the dots take over.",
   },
   {
     date: "2026-09-16",
@@ -137,7 +143,8 @@ export const EVENTS: CalEvent[] = [
     kind: "rates",
     hits: "ES · GOLD",
     context: "Cable and gold. Secondary to last night's dots.",
-    history: "BoE is a cable/gold 20-minute event. ES only cares if they surprise vs the Fed path. Fade unless it's a 25bp miss.",
+    history:
+      "BoE is a cable/gold 20-minute event. ES only cares if they surprise vs the Fed path. Fade unless it's a 25bp miss.",
   },
   {
     date: "2026-09-18",
@@ -150,7 +157,7 @@ export const EVENTS: CalEvent[] = [
     history: "IP is a 5-minute ES twitch unless the miss is >0.8%. Don't size it like CPI.",
   },
   {
-    date: "2026-09-18",
+    date: "2026-09-11",
     time: "10:00",
     title: "UMich sentiment (prelim)",
     short: "UMich",
@@ -168,7 +175,8 @@ export const EVENTS: CalEvent[] = [
     kind: "rates",
     hits: "ES",
     context: "Rate-sensitive demand. Follows claims, not CPI.",
-    history: "New home sales move rates more than NQ. A 10% miss can bid ES for an hour if it confirms cooling housing into the next NFP.",
+    history:
+      "New home sales move rates more than NQ. A 10% miss can bid ES for an hour if it confirms cooling housing into the next NFP.",
   },
   {
     date: "2026-09-25",
@@ -178,7 +186,20 @@ export const EVENTS: CalEvent[] = [
     kind: "rates",
     hits: "ES · NQ",
     context: "Capex pulse. Core ex-aircraft is the read.",
-    history: "Ignore the headline. Core capex ex-aircraft is the read. A 1%+ miss can fade NQ with Mag7 if it smells like capex slowdown.",
+    history:
+      "Ignore the headline. Core capex ex-aircraft is the read. A 1%+ miss can fade NQ with Mag7 if it smells like capex slowdown.",
+  },
+  {
+    date: "2026-09-25",
+    time: "10:00",
+    title: "UMich sentiment + inflation expectations (final)",
+    short: "UMich final",
+    kind: "inflation",
+    hits: "NQ · ES · GOLD",
+    context:
+      "The inflation-expectations revisions are the tape. Read the 1-year and 5-year measures before the sentiment headline.",
+    history:
+      "A material upward revision to inflation expectations can lift yields and DXY while pressuring NQ and gold. A softer revision can reverse that path. The headline sentiment number matters less unless the revision is large and rates confirm.",
   },
   {
     date: "2026-09-29",
@@ -221,7 +242,8 @@ export const EVENTS: CalEvent[] = [
     kind: "mag7",
     hits: "NQ · MSFT",
     context: "Model/API pricing and compute. MSFT and NQ, not oil.",
-    history: "Altman on stage is an NQ event. Compute rationing comments fade NVDA. Open-weights talk bids the whole tape for 20 minutes then fades.",
+    history:
+      "Altman on stage is an NQ event. Compute rationing comments fade NVDA. Open-weights talk bids the whole tape for 20 minutes then fades.",
   },
   {
     date: "2026-10-14",
@@ -231,7 +253,8 @@ export const EVENTS: CalEvent[] = [
     kind: "mag7",
     hits: "NQ · GOOG",
     context: "Search, Cloud, Gemini. Alphabet multiple, then NQ.",
-    history: "Sundar keynotes move GOOG first. NQ only follows if Cloud growth or Gemini distribution is the headline. Fade a hardware demo.",
+    history:
+      "Sundar keynotes move GOOG first. NQ only follows if Cloud growth or Gemini distribution is the headline. Fade a hardware demo.",
   },
   {
     date: "2026-10-21",
@@ -241,7 +264,8 @@ export const EVENTS: CalEvent[] = [
     kind: "mag7",
     hits: "NQ · MSFT",
     context: "Safety/compute narrative into the AI complex.",
-    history: "Dario on a mic is slower than Altman. A compute-cluster number still reprices NVDA. Policy talk is NQ noise.",
+    history:
+      "Dario on a mic is slower than Altman. A compute-cluster number still reprices NVDA. Policy talk is NQ noise.",
   },
   {
     date: "2026-10-07",
@@ -262,7 +286,8 @@ export const EVENTS: CalEvent[] = [
     kind: "inflation",
     hits: "NQ · ES · GOLD",
     context: "BLS. Last CPI before October FOMC. Core is the tape.",
-    history: "CPI into an FOMC is a 15-minute impulse then a grind to Wednesday. ±0.2 core is a trend day. Gold inverse DXY.",
+    history:
+      "CPI into an FOMC is a 15-minute impulse then a grind to Wednesday. ±0.2 core is a trend day. Gold inverse DXY.",
   },
   {
     date: "2026-10-15",
@@ -272,7 +297,8 @@ export const EVENTS: CalEvent[] = [
     kind: "inflation",
     hits: "NQ · ES · GOLD",
     context: "BLS PPI and Census retail the morning after CPI. Confirms or fades yesterday.",
-    history: "PPI the day after CPI is a cleanup print. Soft retail into FOMC caps the hawk for an hour. Don't size it like CPI.",
+    history:
+      "PPI the day after CPI is a cleanup print. Soft retail into FOMC caps the hawk for an hour. Don't size it like CPI.",
   },
   {
     date: "2026-10-28",
@@ -293,7 +319,8 @@ export const EVENTS: CalEvent[] = [
     kind: "inflation",
     hits: "NQ · ES · GOLD",
     context: "BEA. Morning after FOMC. Core PCE is the one that sticks.",
-    history: "GDP the day after FOMC is usually faded. Core PCE ±0.1 still reprices gold if it fights last night's statement.",
+    history:
+      "GDP the day after FOMC is usually faded. Core PCE ±0.1 still reprices gold if it fights last night's statement.",
   },
   {
     date: "2026-11-03",
@@ -322,7 +349,8 @@ export const EVENTS: CalEvent[] = [
     kind: "rates",
     hits: "NQ · ES · GOLD",
     context: "BLS Employment Situation. First jobs print after October FOMC.",
-    history: "NFP after a hold: the market trades the labor crack. Soft = gold bid, NQ squeeze. Hot = DXY rip.",
+    history:
+      "NFP after a hold: the market trades the labor crack. Soft = gold bid, NQ squeeze. Hot = DXY rip.",
   },
   {
     date: "2026-11-10",
@@ -351,7 +379,8 @@ export const EVENTS: CalEvent[] = [
     kind: "inflation",
     hits: "NQ · ES · GOLD",
     context: "BLS pipeline inflation after Tuesday CPI.",
-    history: "Hot core PPI dumps duration if CPI already ran. Soft PPI is a gold bid that gives back if PCE doesn't confirm.",
+    history:
+      "Hot core PPI dumps duration if CPI already ran. Soft PPI is a gold bid that gives back if PCE doesn't confirm.",
   },
   {
     date: "2026-11-18",
@@ -380,7 +409,8 @@ export const EVENTS: CalEvent[] = [
     kind: "rates",
     hits: "NQ · ES · GOLD",
     context: "BLS. Last jobs print before December SEP.",
-    history: "NFP into a dots meeting: the labor crack is the whole story. Soft NFP = they can't hike again.",
+    history:
+      "NFP into a dots meeting: the labor crack is the whole story. Soft NFP = they can't hike again.",
   },
   {
     date: "2026-12-09",
@@ -390,7 +420,8 @@ export const EVENTS: CalEvent[] = [
     kind: "rates",
     hits: "NQ · ES · GOLD",
     context: "Fed. Dec 8–9. Statement 14:00, presser 14:30, quarterly SEP.",
-    history: "December SEP is the year-end path. Dots > the 25bp. Gold dumps a hawkish SEP, then chops. Real tape is the presser.",
+    history:
+      "December SEP is the year-end path. Dots > the 25bp. Gold dumps a hawkish SEP, then chops. Real tape is the presser.",
   },
   {
     date: "2026-12-10",
@@ -467,7 +498,8 @@ export const EVENTS: CalEvent[] = [
     kind: "rates",
     hits: "NQ · ES · GOLD",
     context: "Fed. Apr 27–28. No SEP.",
-    history: "Non-SEP FOMC: statement is the tape. Fade the 14:00 spike unless they move the range.",
+    history:
+      "Non-SEP FOMC: statement is the tape. Fade the 14:00 spike unless they move the range.",
   },
   {
     date: "2027-04-29",
@@ -486,7 +518,8 @@ export const EVENTS: CalEvent[] = [
     kind: "rates",
     hits: "NQ · ES · GOLD",
     context: "Fed. Jun 8–9. Quarterly SEP.",
-    history: "June SEP is the mid-year path. Gold dumps a hawkish set of dots, then chops in the presser.",
+    history:
+      "June SEP is the mid-year path. Gold dumps a hawkish set of dots, then chops in the presser.",
   },
   {
     date: "2027-07-28",
@@ -531,7 +564,9 @@ export const EVENTS: CalEvent[] = [
 ];
 
 export function eventsOn(iso: string) {
-  return EVENTS.filter((e) => e.date === iso).sort((a, b) => eventStamp(a).getTime() - eventStamp(b).getTime());
+  return EVENTS.filter((e) => e.date === iso).sort(
+    (a, b) => eventStamp(a).getTime() - eventStamp(b).getTime(),
+  );
 }
 
 export function upcomingFrom(iso: string, n = 8) {
@@ -549,7 +584,9 @@ export function eventStamp(e: CalEvent) {
     timeZoneName: "shortOffset",
     year: "numeric",
   });
-  const offsetLabel = formatter.formatToParts(new Date(wallClockUtc)).find((part) => part.type === "timeZoneName")?.value ?? "GMT-5";
+  const offsetLabel =
+    formatter.formatToParts(new Date(wallClockUtc)).find((part) => part.type === "timeZoneName")
+      ?.value ?? "GMT-5";
   const match = offsetLabel.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
   const sign = match?.[1] === "-" ? -1 : 1;
   const offsetMinutes = match ? sign * (Number(match[2]) * 60 + Number(match[3] ?? 0)) : -300;
@@ -557,9 +594,11 @@ export function eventStamp(e: CalEvent) {
 }
 
 export function nextEvent(from = new Date()) {
-  return [...EVENTS]
-    .sort((a, b) => eventStamp(a).getTime() - eventStamp(b).getTime())
-    .find((e) => eventStamp(e).getTime() > from.getTime()) ?? null;
+  return (
+    [...EVENTS]
+      .sort((a, b) => eventStamp(a).getTime() - eventStamp(b).getTime())
+      .find((e) => eventStamp(e).getTime() > from.getTime()) ?? null
+  );
 }
 
 export function remainingParts(ms: number) {

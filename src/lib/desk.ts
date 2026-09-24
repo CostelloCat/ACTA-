@@ -229,6 +229,17 @@ const POLICY_CATALYST_PATTERN =
   /summit|talks?|negotiat|trade truce|tariff|export control|sanction|ceasefire|implementation|deadline/i;
 const MARKET_SOURCE_PATTERN =
   /Reuters|Refinitiv|Associated Press|Bloomberg|Financial Times|CNBC|Wall Street Journal/i;
+const SYSTEMIC_GEO_PATTERN =
+  /hormuz|red sea|suez|taiwan|south china sea|nato|nuclear|airspace clos|shipping lane|tanker|pipeline|energy supply|oil supply|gas supply|sanction|export control|ceasefire|war escalation|missile strike|invasion|tariff|trade restriction/i;
+
+export function isMarketRelevantNews(item: NewsItem) {
+  if (item.kind !== "GEO") return true;
+  return (
+    MARKET_IMPACT_PATTERN.test(item.title) ||
+    POLICY_CATALYST_PATTERN.test(item.title) ||
+    SYSTEMIC_GEO_PATTERN.test(item.title)
+  );
+}
 
 export function newsPriorityScore(item: NewsItem, now = Date.now()) {
   const stamp = Date.parse(item.published);
@@ -248,7 +259,8 @@ export function newsPriorityScore(item: NewsItem, now = Date.now()) {
   const marketImpact = MARKET_IMPACT_PATTERN.test(item.title) ? 28 : 0;
   const policyCatalyst = POLICY_CATALYST_PATTERN.test(item.title) ? 18 : 0;
   const attributableSource = MARKET_SOURCE_PATTERN.test(item.source) ? 10 : 0;
-  return freshness + marketImpact + policyCatalyst + attributableSource;
+  const noTapePath = isMarketRelevantNews(item) ? 0 : -80;
+  return freshness + marketImpact + policyCatalyst + attributableSource + noTapePath;
 }
 
 function parseRss(xml: string): NewsItem[] {

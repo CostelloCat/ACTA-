@@ -2,9 +2,10 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { DataHealth } from "@/components/data-health";
 import { tradeLensFor } from "@/components/global-flow";
+import { SessionGlobe } from "@/components/session-globe";
 import { Shell } from "@/components/shell";
 import {
-  buildCatalystSignals,
+  buildDeskSignals,
   scheduledCatalysts,
   signalTimeLabel,
   statusLabel,
@@ -32,13 +33,11 @@ const MARKET_PULSE = [
 function Desk() {
   const { desk, mosaic } = Route.useLoaderData();
   const router = useRouter();
-  const signals = buildCatalystSignals({
+  const signals = buildDeskSignals({
     mosaic,
     news: Object.values(desk.wires).flat(),
-    limit: 4,
-  });
+  }).slice(0, 4);
   const active = signals[0] ?? null;
-  const lens = active ? tradeLensFor(active) : null;
   const nextRisk = scheduledCatalysts(new Date(), 1, false)[0] ?? null;
   const quotes = MARKET_PULSE.map((market) => ({
     ...market,
@@ -53,20 +52,9 @@ function Desk() {
   return (
     <Shell>
       <main className="mx-auto max-w-7xl">
-        <header className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-5">
-          <div>
-            <p className="text-gold text-[10px] tracking-[0.22em] uppercase">
-              Independent market intelligence
-            </p>
-            <h1 className="mt-1 text-3xl sm:text-4xl">
-              Know what changed before you touch the trade.
-            </h1>
-          </div>
-          <p className="text-muted max-w-md text-sm leading-relaxed">
-            ACTA separates verified catalysts, scheduled risk, and market reaction—without
-            pretending a headline is a trade call.
-          </p>
-        </header>
+        <h1 className="sr-only">ACTA market session desk</h1>
+
+        <SessionGlobe />
 
         <div className="mt-4">
           <DataHealth desk={desk} />
