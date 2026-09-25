@@ -22,8 +22,11 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
 const ASSETS = ["All", "NQ", "ES", "AAPL", "NVDA", "GOLD", "CL", "BTC"] as const;
 
 function isoToday() {
-  const n = new Date();
-  return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-${String(n.getDate()).padStart(2, "0")}`;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(new Date());
+  const part = (type: string) => parts.find((item) => item.type === type)?.value;
+  return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
 function CalendarPage() {
@@ -84,11 +87,12 @@ function CalendarPage() {
                   <div key={`${cell.iso}-${index}`} className={cn("min-h-20 border-b border-r border-white/10 p-1.5 sm:min-h-24 sm:p-2", !cell.day && "bg-black/20", selected && "bg-white/[0.05]")}>
                     {cell.day ? <span className={cn("text-muted text-xs", cell.iso === today && "text-gold")}>{cell.day}</span> : null}
                     <div className="mt-1 space-y-1">
-                      {dayEvents.slice(0, 2).map((event) => (
+                      {dayEvents.slice(0, 3).map((event) => (
                         <button key={`${event.date}-${event.title}`} type="button" onClick={() => selectEvent(event)} className={cn("block w-full truncate rounded-md px-1.5 py-1 text-left text-[10px] leading-tight", KIND_CLASS[event.kind], event === selectedEvent && "ring-1 ring-current")}>
                           {event.time ? `${event.time} ` : ""}{event.short}
                         </button>
                       ))}
+                      {dayEvents.length > 3 ? <span className="text-muted block text-[10px]">+{dayEvents.length - 3} more in agenda</span> : null}
                     </div>
                   </div>
                 );
@@ -111,6 +115,11 @@ function CalendarPage() {
               <p className="text-muted text-[10px] tracking-[0.18em] uppercase">Typical tape</p>
               <p className="text-muted mt-2 text-sm leading-relaxed">{selectedEvent.history}</p>
             </div>
+            {selectedEvent.sourceUrl ? (
+              <a href={selectedEvent.sourceUrl} target="_blank" rel="noopener noreferrer" className="pill mt-5 inline-flex">
+                Verify official schedule ↗
+              </a>
+            ) : null}
             <div className="mt-5">
               <AskTape chips={[{ label: `Ask · ${selectedEvent.short}`, prompt: `${selectedEvent.title} on ${selectedEvent.date}${selectedEvent.time ? ` at ${selectedEvent.time} ET` : ""}. Hits ${selectedEvent.hits}. Explain the bullish sensitivity, bearish sensitivity, what would invalidate each interpretation, and which first-15-minute variables deserve attention. Do not issue a trade call.` }]} />
             </div>
