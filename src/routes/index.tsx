@@ -56,6 +56,23 @@ function Desk() {
 
         <SessionGlobe />
 
+        <section
+          className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gold/35 bg-surface/90 p-4 sm:px-5"
+          aria-label="Global News"
+        >
+          <div>
+            <p className="text-gold text-[10px] tracking-[0.2em] uppercase">
+              ACTA · Intelligence
+            </p>
+            <p className="text-muted mt-1 max-w-xl text-xs leading-relaxed">
+              Global headlines, original newsrooms, and source-linked market catalysts.
+            </p>
+          </div>
+          <Link to="/news" className="pill pill-solid shrink-0" aria-label="Open Global News">
+            Global News →
+          </Link>
+        </section>
+
         <div className="mt-4">
           <DataHealth desk={desk} />
         </div>
@@ -74,7 +91,7 @@ function Desk() {
                   <h2 className="mt-1 text-xl">What could reach the tape</h2>
                 </div>
                 <Link to="/news" className="text-gold text-xs no-underline">
-                  Radar →
+                  Global News →
                 </Link>
               </div>
               <ol className="mt-3 divide-y divide-line">
@@ -161,7 +178,7 @@ function PriorityCard({ signal }: { signal: CatalystSignal | null }) {
           That means ACTA has no source-linked event to elevate—not that nothing is happening.
         </p>
         <Link to="/news" className="pill mt-5">
-          Open Radar
+          Open Global News
         </Link>
       </section>
     );
