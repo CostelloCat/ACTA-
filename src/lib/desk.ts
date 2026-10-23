@@ -108,6 +108,8 @@ const FALLBACK_QUOTES: Quote[] = [
   { symbol: "CL=F", label: "WTI", price: 0, changePct: 0 },
   { symbol: "BZ=F", label: "BRENT", price: 0, changePct: 0 },
   { symbol: "NQ=F", label: "NQ", price: 0, changePct: 0 },
+  { symbol: "ES=F", label: "ES", price: 0, changePct: 0 },
+  { symbol: "BTC-USD", label: "BTC", price: 0, changePct: 0 },
   { symbol: "^VIX", label: "VIX", price: 0, changePct: 0 },
   { symbol: "DX-Y.NYB", label: "DXY", price: 0, changePct: 0 },
 ];
@@ -234,7 +236,7 @@ async function loadWire(key: WireKey): Promise<NewsItem[]> {
 }
 
 async function loadQuotes(): Promise<Quote[]> {
-  const symbols = "%5EDJI,%5EIXIC,%5EGSPC,GC=F,CL=F,BZ=F,NQ=F,%5EVIX,DX-Y.NYB";
+  const symbols = "%5EDJI,%5EIXIC,%5EGSPC,GC=F,CL=F,BZ=F,NQ=F,ES=F,BTC-USD,%5EVIX,DX-Y.NYB";
   const labels: Record<string, string> = {
     "^DJI": "DJI",
     "^IXIC": "IXIC",
@@ -243,6 +245,8 @@ async function loadQuotes(): Promise<Quote[]> {
     "CL=F": "WTI",
     "BZ=F": "BRENT",
     "NQ=F": "NQ",
+    "ES=F": "ES",
+    "BTC-USD": "BTC",
     "^VIX": "VIX",
     "DX-Y.NYB": "DXY",
   };
