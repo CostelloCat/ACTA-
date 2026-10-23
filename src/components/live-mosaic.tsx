@@ -59,12 +59,12 @@ export function LiveMosaic({
   const liveNow = list.filter((r) => r.onAir);
   const highlights = list.filter((r) => !r.onAir && r.videoId);
   const fallback = liveNow[0] ?? highlights[0] ?? list[0] ?? null;
-  const active = list.find((c) => c.label === on) ?? fallback;
+  const active = list.find((c) => `${c.desk}:${c.label}` === on) ?? fallback;
   const playing = Boolean(
-    active && embedSrc(active) && (active.onAir || on === active.label || (lane === "main" && active === fallback)),
+    active && embedSrc(active) && (active.onAir || on === `${active.desk}:${active.label}` || (lane === "main" && active === fallback)),
   );
   const src = playing && active ? embedSrc(active) : null;
-  const rest = list.filter((c) => c.label !== active?.label).slice(0, 6);
+  const rest = list.filter((c) => `${c.desk}:${c.label}` !== (active ? `${active.desk}:${active.label}` : "")).slice(0, 6);
   const min = desk === "min" && !q.trim();
   const ytMiss = `https://www.youtube.com/results?search_query=${encodeURIComponent(q.trim())}`;
 
@@ -154,9 +154,9 @@ export function LiveMosaic({
           <button
             key={`${c.desk}:${c.label}`}
             type="button"
-            onClick={() => setOn(c.label)}
+            onClick={() => setOn(`${c.desk}:${c.label}`)}
             title={c.onAir ? "Verified live video" : c.videoId ? "Recent video available" : "Open source details"}
-            className={cn("pill", active?.label === c.label && "pill-on")}
+            className={cn("pill", `${c.desk}:${c.label}` === (active ? `${active.desk}:${active.label}` : "") && "pill-on")}
           >
             {c.label}
             {c.onAir ? (
@@ -189,7 +189,7 @@ export function LiveMosaic({
               row={c}
               on={() => {
                 setDesk(c.desk);
-                setOn(c.label);
+                setOn(`${c.desk}:${c.label}`);
               }}
             />
           ))}
@@ -234,7 +234,7 @@ export function LiveMosaic({
           </div>
           <div className="grid grid-cols-2 gap-2">
             {rest.length
-              ? rest.map((c) => <Tile key={c.label} row={c} on={() => setOn(c.label)} />)
+              ? rest.map((c) => <Tile key={`${c.desk}:${c.label}`} row={c} on={() => setOn(`${c.desk}:${c.label}`)} />)
               : natives.slice(0, 4).map((o) => (
                   <a
                     key={o.href}
