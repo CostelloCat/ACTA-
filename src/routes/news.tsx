@@ -1,13 +1,14 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { GlobalFlow } from "@/components/global-flow";
+import { GlobalNewsWatch } from "@/components/global-news-watch";
 import { DataHealth } from "@/components/data-health";
 import { LiveMosaic } from "@/components/live-mosaic";
 import { Shell } from "@/components/shell";
 import { buildCatalystSignals, signalTimeLabel, statusLabel } from "@/lib/catalysts";
-import { type DeskId, getMosaic } from "@/lib/channels";
+import { CHANNELS, type DeskId, getMosaic } from "@/lib/channels";
 import { getDesk, leadAge } from "@/lib/desk";
-import { DESK_WIRE, outletsOn } from "@/lib/outlets";
+import { DESK_WIRE, OUTLETS, outletsOn } from "@/lib/outlets";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/news")({
@@ -77,8 +78,16 @@ function NewsPage() {
             </p>
           </div>
 
+          <nav className="mt-4 flex flex-wrap gap-2" aria-label="Global News sections">
+            <a href="#global-catalysts" className="pill">Market catalysts ↓</a>
+            <a href="#global-markets" className="pill">NQ / ES / Oil / Gold / BTC ↓</a>
+            <a href="#global-media" className="pill">Global TV & media ↓</a>
+            <a href="#global-wires" className="pill">World news wires ↓</a>
+          </nav>
+
           <section
-            className="mt-5 rounded-2xl border border-line bg-black/45 p-3 sm:p-4"
+            id="global-catalysts"
+            className="mt-5 scroll-mt-6 rounded-2xl border border-line bg-black/45 p-3 sm:p-4"
             aria-label="Market-moving catalyst queue"
           >
             <div className="flex flex-wrap items-end justify-between gap-2">
@@ -137,6 +146,8 @@ function NewsPage() {
             </div>
           </section>
 
+          <GlobalNewsWatch quotes={desk.quotes} signal={activeSignal} />
+
           <div className="mt-4">
             <GlobalFlow activeSignal={activeSignal} quotes={desk.quotes} />
           </div>
@@ -159,19 +170,24 @@ function NewsPage() {
             </div>
           ) : null}
 
-          <div className="mt-8 border-t border-line pt-6">
-            <p className="text-muted text-[10px] tracking-[0.22em] uppercase">Source rooms</p>
+          <section id="global-media" className="mt-8 scroll-mt-6 border-t border-line pt-6">
+            <p className="text-muted text-[10px] tracking-[0.22em] uppercase">Global media directory</p>
             <h2 className="mt-1 text-2xl">Watch the world without losing the source</h2>
-            <p className="text-muted mt-2 max-w-2xl text-sm">
-              Mainstream, native-language, official, and Against the Current desks stay side by
-              side.
+            <p className="text-muted mt-2 max-w-2xl text-sm leading-relaxed">
+              Browse all {CHANNELS.length} video and media listings plus {OUTLETS.length} original-language publisher links.
+              Mainstream, government, international, and Against the Current sources remain available
+              even when their live video is unavailable or embedding is blocked.
             </p>
-          </div>
-          <div className="mt-4">
-            <LiveMosaic rows={mosaic} desk={region} onDesk={setRegion} wires={items} />
-          </div>
+            <p className="text-muted mt-2 text-[11px]">
+              Red dot = verified live stream. Video = recent clip. Source = channel link, not an active broadcast.
+            </p>
+            <div className="mt-4">
+              <LiveMosaic rows={mosaic} desk={region} onDesk={setRegion} wires={items} />
+            </div>
+          </section>
 
-          <p className="text-muted mt-8 text-[10px] tracking-[0.22em] uppercase">{wireKey} wire</p>
+          <section id="global-wires" className="mt-8 scroll-mt-6">
+            <p className="text-muted text-[10px] tracking-[0.22em] uppercase">{wireKey} wire · original sources</p>
           {natives.length ? (
             <div className="mt-3 flex flex-wrap gap-1.5">
               {natives.map((o) => (
@@ -207,6 +223,12 @@ function NewsPage() {
               </li>
             ))}
           </ul>
+          {!items.length ? (
+            <p className="text-muted mt-4 text-sm">
+              The live wire could not be retrieved. Use the publisher links above; ACTA will not substitute a dated headline.
+            </p>
+          ) : null}
+          </section>
         </div>
       </div>
     </Shell>
