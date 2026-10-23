@@ -99,90 +99,7 @@ const FEEDS: Record<WireKey, string[]> = {
   ],
 };
 
-const FALLBACK: Record<WireKey, NewsItem[]> = {
-  "United States": [
-    {
-      title: "FOMC and dots are in — market digests the path into Thursday housing and claims",
-      link: "https://news.google.com/search?q=FOMC",
-      source: "Wire",
-      published: "",
-      kind: "RATES",
-    },
-  ],
-  Europe: [
-    {
-      title: "Bank of England due Thursday — cable and gold vs last night's dots",
-      link: "https://news.google.com/search?q=Bank%20of%20England",
-      source: "Wire",
-      published: "",
-      kind: "RATES",
-    },
-  ],
-  Russia: [
-    {
-      title: "Российская лента — нефть, газ, ЦБ. Читаем источник, не перевод.",
-      link: "https://tass.ru",
-      source: "ТАСС",
-      published: "",
-      kind: "GEO",
-    },
-  ],
-  "Middle East": [
-    {
-      title: "Oil desks watch Gulf supply headlines into the London session",
-      link: "https://news.google.com/search?q=oil%20Middle%20East",
-      source: "Wire",
-      published: "",
-      kind: "OIL",
-    },
-  ],
-  Asia: [
-    {
-      title: "Asia session faded the FOMC spike — Tokyo and HK wait on US claims",
-      link: "https://news.google.com/search?q=Asia%20markets",
-      source: "Wire",
-      published: "",
-      kind: "GEO",
-    },
-  ],
-  China: [
-    {
-      title: "人民币与央行 — 原语新闻，不是西方摘要。",
-      link: "https://news.google.com/search?q=PBOC",
-      source: "Wire",
-      published: "",
-      kind: "RATES",
-    },
-  ],
-  LatAm: [
-    {
-      title: "LatAm crude, copper, Bovespa — native Spanish wires.",
-      link: "https://news.google.com/search?q=Bovespa",
-      source: "Wire",
-      published: "",
-      kind: "GEO",
-    },
-  ],
-  Africa: [
-    {
-      title: "West Africa crude and metals — local desks, not the London rewrite.",
-      link: "https://news.google.com/search?q=Africa%20oil",
-      source: "Wire",
-      published: "",
-      kind: "OIL",
-    },
-  ],
-  Crypto: [
-    {
-      title: "Bitcoin tracks the dollar after the SEP — funding still crowded",
-      link: "https://news.google.com/search?q=bitcoin",
-      source: "Wire",
-      published: "",
-      kind: "CRYPTO",
-    },
-  ],
-};
-
+// A failed upstream wire is unavailable, never a prewritten headline.
 const FALLBACK_QUOTES: Quote[] = [
   { symbol: "^DJI", label: "DJI", price: 0, changePct: 0 },
   { symbol: "^IXIC", label: "IXIC", price: 0, changePct: 0 },
@@ -313,7 +230,7 @@ async function loadWire(key: WireKey): Promise<NewsItem[]> {
     merged.push(row);
   }
   merged.sort((a, b) => newsPriorityScore(b) - newsPriorityScore(a));
-  return merged.length ? merged.slice(0, 16) : FALLBACK[key];
+  return merged.slice(0, 16);
 }
 
 async function loadQuotes(): Promise<Quote[]> {
