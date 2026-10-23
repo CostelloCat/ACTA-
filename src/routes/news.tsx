@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { GlobalFlow } from "@/components/global-flow";
 import { GlobalNewsWatch } from "@/components/global-news-watch";
@@ -83,6 +83,7 @@ function NewsPage() {
             <a href="#global-markets" className="pill">NQ / ES / Oil / Gold / BTC ↓</a>
             <a href="#global-media" className="pill">Global TV & media ↓</a>
             <a href="#global-wires" className="pill">World news wires ↓</a>
+            <Link to="/socials" className="pill">Social & streaming platforms →</Link>
           </nav>
 
           <section
@@ -176,7 +177,8 @@ function NewsPage() {
             <p className="text-muted mt-2 max-w-2xl text-sm leading-relaxed">
               Browse all {CHANNELS.length} video and media listings plus {OUTLETS.length} original-language publisher links.
               Mainstream, government, international, and Against the Current sources remain available
-              even when their live video is unavailable or embedding is blocked.
+              even when their live video is unavailable or embedding is blocked. Other media platforms
+              (X, YouTube, Discord, Truth Social, and Kick) remain accessible through Socials.
             </p>
             <p className="text-muted mt-2 text-[11px]">
               Red dot = verified live stream. Video = recent clip. Source = channel link, not an active broadcast.
