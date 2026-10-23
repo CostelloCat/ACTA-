@@ -144,10 +144,16 @@ export const CHANNELS: Channel[] = [
 
 export function channelsOn(desk: DeskId, lane: Lane) {
   const pool = CHANNELS.filter((c) => c.lane === lane);
-  if (desk === "live") return pool.filter((c) => c.desk === "us" || c.desk === "live");
+  if (desk === "live") return pool; // All regions: only confirmed live streams are shown by the mosaic.
   if (desk === "min") return pool;
   if (lane === "current" && desk === "talk") return pool.filter((c) => c.desk === "talk");
   return pool.filter((c) => c.desk === desk);
+}
+
+export function mediaUrl(channel: Channel) {
+  return channel.channelId
+    ? `https://www.youtube.com/channel/${encodeURIComponent(channel.channelId)}`
+    : `https://www.youtube.com/results?search_query=${encodeURIComponent(channel.query)}`;
 }
 
 export function embedSrc(row: MosaicRow) {
