@@ -67,9 +67,9 @@ function NewsPage() {
           <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-gold text-[11px] tracking-[0.2em] uppercase">
-                Unscheduled catalyst intelligence
+                Global News · Catalyst Radar
               </p>
-              <h1 className="mt-1 text-3xl sm:text-4xl">Catalyst Radar</h1>
+              <h1 className="mt-1 text-3xl sm:text-4xl">Global News</h1>
             </div>
             <p className="text-muted max-w-xl text-sm leading-relaxed">
               Detect the event, verify the source, map the exposure. Native newsrooms remain
