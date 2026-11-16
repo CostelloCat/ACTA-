@@ -1,4 +1,5 @@
 import { BookNews } from "@/components/book-news";
+import { FuturesSnapshot } from "@/components/futures-snapshot";
 import { LevelKeys } from "@/components/level-keys";
 import { Shell } from "@/components/shell";
 import { TvMini } from "@/components/tv-mini";
@@ -43,12 +44,13 @@ export function MarketView({ book }: { book: Book }) {
         <p className="text-muted text-[10px] tracking-[0.22em] uppercase">{book.hits}</p>
         <h1 className="mt-2 text-4xl">{book.title}</h1>
         <div className="mt-5">
-          <TvMini symbol={SYM[book.slug] ?? "NASDAQ:QQQ"} />
           {book.slug === "nq" ? (
-            <p className="text-muted mt-2 text-[11px]">
-              NQ1! · CME E-mini Nasdaq-100 futures (continuous contract). TradingView market data may be delayed.
-            </p>
-          ) : null}
+            <FuturesSnapshot slug="nq" />
+          ) : book.slug === "spx" ? (
+            <FuturesSnapshot slug="spx" />
+          ) : (
+            <TvMini symbol={SYM[book.slug] ?? "NASDAQ:QQQ"} />
+          )}
         </div>
         <p className="text-fg mt-4 max-w-2xl text-sm leading-relaxed">{book.bias}</p>
         <LevelKeys slug={book.slug} labels={book.levels} />
