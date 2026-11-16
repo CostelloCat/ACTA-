@@ -126,7 +126,7 @@ export function CatalystMix({
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number, name: string) => [`${value} listed event${value === 1 ? "" : "s"}`, name]}
+                  formatter={(value, name) => { const count = Number(value); return [`${count} listed event${count === 1 ? "" : "s"}`, String(name)]; }}
                   contentStyle={{ background: "#111216", border: "1px solid #3a3b40", borderRadius: 10, color: "#fafafa" }}
                   itemStyle={{ color: "#fafafa" }}
                 />
