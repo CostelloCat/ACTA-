@@ -11,6 +11,7 @@ export type LevelPack = {
   onl: number | null;
   yearOpen: number | null;
   asOf: string;
+  quoteAsOf?: string | null;
   source: string;
 };
 
@@ -39,7 +40,7 @@ type Quote = {
 
 type Chart = {
   timestamp?: number[];
-  meta?: { regularMarketPrice?: number; timezone?: string };
+  meta?: { regularMarketPrice?: number; regularMarketTime?: number; timezone?: string };
   indicators?: { quote?: Quote[] };
 };
 
@@ -138,7 +139,19 @@ async function loadLevels(symbol: string): Promise<LevelPack | null> {
       priorHigh = dQ.high[i] ?? null;
       priorLow = dQ.low[i] ?? null;
     }
-    const last = daily?.meta?.regularMarketPrice ?? dQ?.close.at(-1) ?? 0;
+    const valid = (value: number | null | undefined) =>
+      typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
+    const last =
+      valid(daily?.meta?.regularMarketPrice) ??
+      valid(intra?.indicators?.quote?.[0]?.close.at(-1)) ??
+      valid(dQ?.close.at(-1));
+    // Never manufacture an index value of zero when the provider is unavailable.
+    if (last == null) return null;
+    const quoteUnix = daily?.meta?.regularMarketTime ?? intra?.timestamp?.at(-1);
+    const quoteAsOf =
+      typeof quoteUnix === "number" && Number.isFinite(quoteUnix) && quoteUnix > 0
+        ? new Date(quoteUnix * 1000).toISOString()
+        : null;
 
     const iTs = intra?.timestamp ?? [];
     const iQ = intra?.indicators?.quote?.[0];
@@ -185,6 +198,7 @@ async function loadLevels(symbol: string): Promise<LevelPack | null> {
       onl,
       yearOpen,
       asOf: new Date().toISOString(),
+      quoteAsOf,
       source: "Yahoo Finance",
     };
 }
