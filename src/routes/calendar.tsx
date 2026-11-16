@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AskTape } from "@/components/ask-tape";
 import { CatalystRail } from "@/components/catalyst-rail";
+import { CatalystMix } from "@/components/catalyst-mix";
 import { Shell } from "@/components/shell";
 import {
   EVENTS, KIND_LABEL, eventsOn, monthGrid, shiftMonth, upcomingFrom,
@@ -54,6 +55,13 @@ function CalendarPage() {
     setMonth(m - 1);
   }
 
+  function selectFromMix(event: CalEvent) {
+    selectEvent(event);
+    window.requestAnimationFrame(() => {
+      document.getElementById("calendar-event-detail")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+
   return (
     <Shell>
       <main className="mx-auto max-w-6xl">
@@ -100,7 +108,7 @@ function CalendarPage() {
             </div>
           </div>
 
-          <aside className="rounded-2xl border border-line bg-surface/90 p-4 sm:p-5">
+          <aside id="calendar-event-detail" className="rounded-2xl border border-line bg-surface/90 p-4 sm:p-5">
             <div className="flex items-center justify-between gap-3">
               <p className={cn("rounded-full px-2 py-1 text-[10px] tracking-[0.16em] uppercase", KIND_CLASS[selectedEvent.kind])}>{KIND_LABEL[selectedEvent.kind]}</p>
               <p className="text-muted text-xs tabular-nums">{formatWhen(selectedEvent.date, selectedEvent.time)}</p>
@@ -125,6 +133,8 @@ function CalendarPage() {
             </div>
           </aside>
         </section>
+
+        <CatalystMix today={today} asset={asset} onSelectEvent={selectFromMix} />
 
         <div className="mt-6">
           <CatalystRail
