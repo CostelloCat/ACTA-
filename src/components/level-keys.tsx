@@ -36,9 +36,14 @@ export function LevelKeys({ slug, labels }: { slug: string; labels: string[] }) 
     setOpen(label);
     if (pack || busy) return;
     setBusy(true);
-    const next = await getLevels({ data: { slug } });
-    setPack(next);
-    setBusy(false);
+    try {
+      const next = await getLevels({ data: { slug } });
+      setPack(next);
+    } catch {
+      setPack(null);
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -61,10 +66,10 @@ export function LevelKeys({ slug, labels }: { slug: string; labels: string[] }) 
               <span>{lv}</span>
               {on ? (
                 <span className="text-gold mt-1 block text-[11px] tracking-wide uppercase">
-                  {busy && !pack ? "Pulling Yahoo…" : pack ? `${read(lv, pack)} · ${pack.symbol}` : "No print"}
+                  {busy && !pack ? "Checking source…" : pack ? `${read(lv, pack)} · ${pack.symbol}` : "Level unavailable"}
                 </span>
               ) : live ? (
-                <span className="text-muted mt-1 block text-[11px]">Tap for the live number</span>
+                <span className="text-muted mt-1 block text-[11px]">Tap for indicative level</span>
               ) : null}
             </button>
           </li>
