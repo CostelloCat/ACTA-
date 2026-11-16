@@ -6,7 +6,7 @@ import { useMode } from "@/lib/mode";
 import type { Book } from "@/lib/markets";
 
 const SYM: Record<string, string> = {
-  nq: "NASDAQ:QQQ",
+  nq: "CME_MINI:NQ1!",
   spx: "FOREXCOM:SPXUSD",
   gold: "TVC:GOLD",
   silver: "TVC:SILVER",
@@ -44,6 +44,11 @@ export function MarketView({ book }: { book: Book }) {
         <h1 className="mt-2 text-4xl">{book.title}</h1>
         <div className="mt-5">
           <TvMini symbol={SYM[book.slug] ?? "NASDAQ:QQQ"} />
+          {book.slug === "nq" ? (
+            <p className="text-muted mt-2 text-[11px]">
+              NQ1! · CME E-mini Nasdaq-100 futures (continuous contract). TradingView market data may be delayed.
+            </p>
+          ) : null}
         </div>
         <p className="text-fg mt-4 max-w-2xl text-sm leading-relaxed">{book.bias}</p>
         <LevelKeys slug={book.slug} labels={book.levels} />
